@@ -10,9 +10,10 @@ charm = {
 ---Attempts to cast a charm spell
 ---@param elixir elixir
 function charm:Cast(elixir)
-    if mq.TLO.EverQuest.Foreground() then
-        return
-    end
+    if not elixir.Config.IsElixirAI then return "elixir ai not running" end
+    if not elixir.Config.IsCharmAI then return "charm ai not running" end
+    if elixir.Config.IsElixirDisabledOnFocus and elixir.IsEQInForeground then return "window focused, ai frozen" end
+
 end
 
 return charm

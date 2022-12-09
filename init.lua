@@ -11,5 +11,5 @@ mq.imgui.init('elixir', SettingsRender)
 
 while not elixir.IsTerminated do
     elixir:Update()
-    mq.delay(1000)
+    mq.delay(500)
 end

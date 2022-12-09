@@ -28,7 +28,7 @@ function meditate:Check(elixir)
         self.isLastStateSitting = true
         return "currently meditating " .. mq.TLO.Me.PctHPs() .."% hp " .. mq.TLO.Me.PctMana() .."% mana"
     end
-    if elixir.Config.IsElixirDisabledOnFocus and  mq.TLO.EverQuest.Foreground() then return "window focused, ai frozen" end
+    if elixir.Config.IsElixirDisabledOnFocus and elixir.IsEQInForeground then return "window focused, ai frozen" end
     if elixir.ZoneCooldown > mq.gettime() then return "on zone cooldown" end
     if meditate.meditateCooldown and meditate.meditateCooldown > mq.gettime() then return "on meditate cooldown for " .. ((meditate.meditateCooldown-mq.gettime())/1000).." seconds" end
     if mq.TLO.Me.PctMana() >= 99 and mq.TLO.Me.PctHPs() > 99 then return "full mana and health, no need to meditate" end

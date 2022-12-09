@@ -25,7 +25,7 @@ end
 function heal:Cast(elixir)
     if not elixir.Config.IsElixirAI then return "elixir ai not running" end
     if not elixir.Config.IsHealAI then return "heal ai not running" end
-    if elixir.Config.IsElixirDisabledOnFocus and  mq.TLO.EverQuest.Foreground() then return "window focused, ai frozen" end
+    if elixir.Config.IsElixirDisabledOnFocus and elixir.IsEQInForeground then return "window focused, ai frozen" end
     if elixir.ZoneCooldown > mq.gettime() then return "on zone cooldown" end
     if self.healCooldown and self.healCooldown > mq.gettime() then return "on heal cooldown" end
     if elixir.IsActionCompleted then return "previous action completed" end
@@ -246,9 +246,7 @@ function heal:snapshotAlliesPctHPs()
                 pSpawn.Pet.Distance() < 200 then
                     self.spawnSnapshot[pSpawn.Pet.ID()] = pSpawn.Pet.PctHPs()
                 end
-                if pSpawn.PctHPs() < spawnPctHPs then
-                    self.spawnSnapshot[pSpawn.ID()] = pSpawn.PctHPs()
-                end
+                self.spawnSnapshot[pSpawn.ID()] = pSpawn.PctHPs()
             end
         end
     end

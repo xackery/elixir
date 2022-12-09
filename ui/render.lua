@@ -38,9 +38,8 @@ elements[debuffElement.Index] = debuffElement
 elements[debugElement.Index] = debugElement
 
 function SettingsRender()
-    if not elixir.Config.IsElixirUIOpen then
-        return
-    end
+    if not elixir.Config.IsElixirUIOpen then return end
+    if not elixir.IsInGame then return end
     local isOpen, shouldDraw = ImGui.Begin('\xef\x83\xba Elixir '.. elixir.Version .. " Settings", elixir.Config.IsElixirUIOpen)
     ImGui.SetWindowSize(430, 277, ImGuiCond.FirstUseEver)
     if not isOpen then
@@ -85,22 +84,25 @@ local ICON_WIDTH = 40
 local ICON_HEIGHT = 40
 
 local className = mq.TLO.Me.Class.Name()
-local animBox = mq.FindTextureAnimation(className .. "Icon")
-
+local classIcon = mq.FindTextureAnimation(className .. "Icon")
+local classIconDisabled = mq.FindTextureAnimation(className .. "DisabledIcon")
 
 local function enabledIconStyle()
     ImGui.PushStyleColor(ImGuiCol.Text, 0.28, 0.8, 0.28, 1)
 end
 
-local function disabledIconStyle()    
+local function disabledIconStyle()
     ImGui.PushStyleColor(ImGuiCol.Text, 0.8, 0.28, 0.28, 1)
 end
 
-local function textIconStyle()    
+local function textIconStyle()
     ImGui.PushStyleColor(ImGuiCol.Text, 0.8, 0.8, 0.8, 1)
 end
 
 function OverlayRender(isOpen)
+    if not elixir.Config.IsElixirOverlayUI then return end
+    if not elixir.IsInGame then return end
+
     local window_flags = bit32.bor(ImGuiWindowFlags.NoDecoration, ImGuiWindowFlags.NoDocking,
         ImGuiWindowFlags.NoSavedSettings, ImGuiWindowFlags.NoFocusOnAppearing, ImGuiWindowFlags.NoNav)
 
@@ -108,58 +110,83 @@ function OverlayRender(isOpen)
     
     local isDraw
     isOpen, isDraw = ImGui.Begin("Elixir overlay", true, window_flags)
-    ImGui.SetWindowSize(60, 230)
+    
     if isDraw then
-        --ImGui.DrawTextureAnimation(mq.TLO.Window("InventoryWindow").Child("IW_Subwindows").Child("IW_InvPage").Child("IW_CharacterView").Child("ClassAnim").
-        --ImGui.Text("Elixir " .. elixir.Version)
-        ImGui.DrawTextureAnimation(animBox, ICON_WIDTH, ICON_HEIGHT)
-        ImGui.SameLine(32)
-        textIconStyle()
-        ImGui.Text(settingsElement.Icon) -- settings
-        ImGui.PopStyleColor(1)
-        enabledIconStyle()
-        ImGui.Text(elixirElement.Icon) -- elixir
-        ImGui.PopStyleColor(1)
-        ImGui.SameLine(24)
-        disabledIconStyle()
-        ImGui.Text('\xef\x81\xb0') -- disable on focus
-        ImGui.PopStyleColor(1)
-        enabledIconStyle()
-        ImGui.Text(healElement.Icon) -- heal
-        ImGui.PopStyleColor(1)
-        ImGui.SameLine(26)
-        textIconStyle()
-        ImGui.Text('50%')
-        ImGui.PopStyleColor(1)
-        disabledIconStyle()
-        ImGui.Text('\xef\x81\xa9') -- charm
-        ImGui.PopStyleColor(1)
-        enabledIconStyle()
-        ImGui.Text('\xee\x95\x8b') -- meditate
-        ImGui.PopStyleColor(1)
-        enabledIconStyle()
-        ImGui.Text('\xef\x85\x80') -- target
-        ImGui.PopStyleColor(1)
-        enabledIconStyle()
-        ImGui.Text('\xef\x84\xb2') -- buff
-        ImGui.PopStyleColor(1)
-        enabledIconStyle()
-        ImGui.Text('\xef\x83\xa7') -- nuke
-        ImGui.PopStyleColor(1)
-        enabledIconStyle()
-        ImGui.Text('\xef\x84\xae') -- dot
-        ImGui.PopStyleColor(1)
-        enabledIconStyle()
-        ImGui.Text('\xef\x83\xbc') -- debuff
-        ImGui.PopStyleColor(1)
-        --local imageIcon = mq.FindTextureAnimation("A_RecessedBox")        
-        --ImGui.DrawTextureAnimation(imageIcon, ICON_WIDTH, ICON_HEIGHT)
-
-        --animItems:SetTextureCell(0)
-        --ImGui.DrawTextureAnimation(animItems, 16, 16)
+        ImGui.SetCursorPos(1,4)
         
-        --ImGui.DrawTextureAnimation(mq.FindTextureAnimation("MaleRace.tga"), 256, 256)
-        --mq.imgui.DrawTextureAnimation(mq.FindTextureAnimation("MaleRace.tga"), 256, 256)
+        if elixir.Config.IsElixirAI then
+            if elixir.Config.IsElixirDisabledOnFocus and elixir.IsEQInForeground then
+                ImGui.DrawTextureAnimation(classIconDisabled, ICON_WIDTH, ICON_HEIGHT)
+            else
+                ImGui.DrawTextureAnimation(classIcon, ICON_WIDTH, ICON_HEIGHT)
+            end
+        else
+            ImGui.DrawTextureAnimation(classIconDisabled, ICON_WIDTH, ICON_HEIGHT)
+        end
+
+        ImGui.SetCursorPos(1,6)
+        if ImGui.InvisibleButton("settings", ICON_WIDTH, ICON_HEIGHT-6) then
+            elixir.SettingsTabIndex = 0
+            if not elixir.Config.IsElixirUIOpen then
+                elixir.Config.IsElixirUIOpen = true
+            end
+        end
+
+        
+        ImGui.SetCursorPos(14, 25)
+        if elixir.Config.IsElixirAI then
+            if elixir.Config.IsElixirDisabledOnFocus and elixir.IsEQInForeground then
+                disabledIconStyle()
+                ImGui.Text(elixirElement.ForegroundIcon) -- elixir
+                ImGui.PopStyleColor(1)
+            else
+                textIconStyle()
+                ImGui.Text(elixirElement.Icon) -- elixir
+                ImGui.PopStyleColor(1)
+            end
+        else
+            disabledIconStyle()
+            ImGui.Text(elixirElement.Icon) -- elixir
+            ImGui.PopStyleColor(1)
+        end
+       
+        local windowHeight = 46
+
+        if elixir.Config.IsHealAI then
+            windowHeight = windowHeight + 20
+            ImGui.NewLine()
+            ImGui.SameLine(4)
+            enabledIconStyle()
+            ImGui.Text(healElement.Icon) -- heal
+            ImGui.PopStyleColor(1)
+            if elixir.Config.IsHealFocus then
+                ImGui.SameLine(22)
+                enabledIconStyle()
+                ImGui.Text(healElement.FocusIcon) -- focus heal
+                ImGui.PopStyleColor(1)
+            end
+        end
+
+        if elixir.Config.IsMeditateAI then
+            windowHeight = windowHeight + 20
+            ImGui.NewLine()
+            ImGui.SameLine(4)
+            enabledIconStyle()
+            ImGui.Text(meditateElement.Icon) -- meditate
+            ImGui.PopStyleColor(1)
+            if elixir.Config.IsMeditateDuringCombat then
+                ImGui.SameLine(22)
+                enabledIconStyle()
+                ImGui.Text(meditateElement.CombatIcon) -- combat
+                ImGui.PopStyleColor(1)
+            end
+        end
+
+        if windowHeight ~= elixir.LastOverlayWindowHeight then
+            ImGui.SetWindowSize(42, windowHeight)
+            elixir.LastOverlayWindowHeight = windowHeight
+            print("height changed to " .. windowHeight)
+        end
         if ImGui.BeginPopupContextWindow() then
             if ImGui.MenuItem("Elixir Settings") then
                 elixir.SettingsTabIndex = 0

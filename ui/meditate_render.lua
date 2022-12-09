@@ -2,6 +2,7 @@
 local meditateElement = {}
 meditateElement.Index = 4
 meditateElement.Icon = '\xee\x95\x8b'
+meditateElement.CombatIcon = '\xef\x84\xb2'
 meditateElement.Title = meditateElement.Icon .. ' Meditate AI'
 
 ---@returns isChanged boolean # if a config change is detected, returns true
@@ -21,11 +22,9 @@ local function meditateRender()
     ImGui.SameLine()
     HelpMarker("Enable Meditate AI. This will make the player sit when possible")
 
-    if not elixir.Config.IsMeditateAI then
-        ImGui.BeginDisabled()
-    end
+    ImGui.BeginDisabled(not elixir.Config.IsMeditateAI)
 
-    isNewCheckboxValue, isCheckboxChanged = ImGui.Checkbox("Meditate During Combat", elixir.Config.IsMeditateDuringCombat)
+    isNewCheckboxValue, isCheckboxChanged = ImGui.Checkbox(meditateElement.CombatIcon .. " Meditate During Combat", elixir.Config.IsMeditateDuringCombat)
     if isCheckboxChanged then
         elixir.Config.IsMeditateDuringCombat = isNewCheckboxValue
         isChanged = true
@@ -33,9 +32,7 @@ local function meditateRender()
     ImGui.SameLine()
     HelpMarker("When enabled, when you are in combat, still try to meditate")
 
-    if not elixir.Config.IsMeditateDuringCombat then
-        ImGui.BeginDisabled()
-    end
+    --ImGui.BeginDisabled(not elixir.Config.IsMeditateDuringCombat)
 
     isNewCheckboxValue, isCheckboxChanged = ImGui.Checkbox("Subtle Meditating", elixir.Config.IsMeditateSubtle)
     if isCheckboxChanged then
@@ -45,13 +42,8 @@ local function meditateRender()
     ImGui.SameLine()
     HelpMarker("When enabled, if aggro is greater than 80% on any XTarget, do not try to sit to meditate")
 
-    if not elixir.Config.IsMeditateDuringCombat then
-        ImGui.EndDisabled()
-    end
-    
-    if not elixir.Config.IsMeditateAI then
-        ImGui.EndDisabled()
-    end
+    --ImGui.EndDisabled()
+    ImGui.EndDisabled()
     ImGui.EndGroup()
     return isChanged
 end

@@ -2,6 +2,7 @@
 local elixirElement = {}
 elixirElement.Index = 0
 elixirElement.Icon = '\xef\x83\xba'
+elixirElement.ForegroundIcon = '\xef\x81\xb0'
 elixirElement.Title = elixirElement.Icon .. ' Elixir AI'
 
 ---@returns isChanged boolean # if a config change is detected, returns true
@@ -25,7 +26,7 @@ local function elixirRender()
         ImGui.BeginDisabled()
     end
     
-    isNewCheckboxValue, isCheckboxChanged = ImGui.Checkbox("\xef\x81\xb0 Disable Elixir AIs When Window Has Focus", elixir.Config.IsElixirDisabledOnFocus)
+    isNewCheckboxValue, isCheckboxChanged = ImGui.Checkbox(elixirElement.ForegroundIcon .. " Disable Elixir AIs When Window Has Focus", elixir.Config.IsElixirDisabledOnFocus)
     if isCheckboxChanged then
         elixir.Config.IsElixirDisabledOnFocus = isNewCheckboxValue
         isChanged = true
