@@ -13,28 +13,27 @@ local function nukeRender()
     local isChanged
     ImGui.BeginGroup()
 
-    local isNewCheckboxValue, isCheckboxChanged = ImGui.Checkbox(nukeElement.Title, elixir.Config.IsHealAI)
+    local isNewCheckboxValue, isCheckboxChanged = ImGui.Checkbox(nukeElement.Title, elixir.Config.IsNukeAI)
     if isCheckboxChanged then
-        elixir.Config.IsHealAI = isNewCheckboxValue
+        elixir.Config.IsNukeAI = isNewCheckboxValue
         isChanged = true
     end
     ImGui.SameLine()
-    HelpMarker("Enable Heal AI. This handles all heal logic")
+    HelpMarker("Enable Nuke AI. This handles all nuke logic")
 
-    if not elixir.Config.IsHealAI then
-        ImGui.BeginDisabled()
-    end
-    isNewCheckboxValue, isCheckboxChanged = ImGui.Checkbox("\xef\x81\xb0 Disable Elixir AIs When Window Has Focus", elixir.Config.IsElixirDisabledOnFocus)
+    ImGui.BeginDisabled(not elixir.Config.IsNukeAI)
+
+    -- TODO: nukepctnormal
+
+    isNewCheckboxValue, isCheckboxChanged = ImGui.Checkbox("Subtle Casting", elixir.Config.IsNukeSubtleCasting)
     if isCheckboxChanged then
-        elixir.Config.IsElixirDisabledOnFocus = isNewCheckboxValue
+        elixir.Config.IsNukeSubtleCasting = isNewCheckboxValue
         isChanged = true
     end
     ImGui.SameLine()
-    HelpMarker("When this EQ window is focused, should Elixir continue running?\nHelpful if you like to tab and take over this character.\nThis means AI will only run when this EQ window is in background.")
+    HelpMarker("When enabled, if aggro is greater than 80% on target, do not try to nuke at risk of getting attacked.")
 
-    if not elixir.Config.IsHealAI then
-        ImGui.EndDisabled()
-    end
+    ImGui.EndDisabled()
     ImGui.EndGroup()
     return isChanged
 end

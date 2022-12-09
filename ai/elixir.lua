@@ -1,7 +1,7 @@
 ---@type Mq
 local mq = require('mq')
 
-local Version = "v0.5.2"
+local Version = "v0.5.3"
 
 ---@class elixir
 ---@field public IsTerminated boolean # Is Elixir about to exit?
@@ -80,8 +80,14 @@ elixir = {
 ---@field public IsTargetAutoAttack boolean # Should auto attack be turned on if close to mob
 ---@field public IsBuffAI boolean # Is Buff AI enabled
 ---@field public IsDotAI boolean # Is Dot AI enabled
+---@field public DotPctNormal number # % to dot normal
+---@field public IsDotSubtleCasting boolean # Is dotting a subtle casting feature
 ---@field public IsNukeAI boolean # Is Nuke AI enabled
+---@field public NukePctNormal number # % to nuke normal
+---@field public IsNukeSubtleCasting boolean # Is Nuking a subtle casting feature
 ---@field public IsDebuffAI boolean # Is Debuff AI enabled
+---@field public DebuffPctNormal number # % to debuff normal
+---@field public IsDebuffSubtleCasting boolean # Is debuffing a subtle casting feature
 ---@field public IsMeditateAI boolean # Is Meditate AI enabled
 ---@field public IsMeditateDuringCombat boolean # Is Meditate allowed if in combat
 ---@field public IsMeditateSubtle boolean # Is Meditate AI supposed to sit when high aggro
@@ -122,8 +128,14 @@ function InitializeConfig()
         IsTargetAutoAttack = false,
         IsBuffAI = true,
         IsDotAI = true,
+        DotPctNormal = 95,
+        IsDotSubtleCasting = true,
         IsNukeAI = true,
+        NukePctNormal = 95,
+        IsNukeSubtleCasting = true,
         IsDebuffAI = true,
+        DebuffPctNormal = 95,
+        IsDebuffSubtleCasting = true,
         IsMeditateDuringCombat = true,
         IsDebugVerboseEnabled = true,
         IsGem1Ignored = false,

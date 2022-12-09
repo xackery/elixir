@@ -6,6 +6,7 @@ local mq = require('mq')
 ---@field IsDebuff boolean # Is spell a debuff (slows, snares, things that don't break mez)
 ---@field IsBuff boolean # Is spell a buff (beneficial ally spell)
 ---@field IsNuke boolean # Is spell a nuke (damage component attached)
+---@field IsDot boolean # Is spell a debuff with damage over time
 ---@field IsLifetap boolean # Is spell a lifetap (subcategory of nuke that heals self too)
 ---@field IsMana boolean # Is spell a mana (gives or takes mana)
 ---@field IsInvis boolean # Is spell one that gives invis

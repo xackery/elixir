@@ -45,8 +45,7 @@ function heal:Cast(elixir)
     local spawn = mq.TLO.Spawn(spawnID)
     if not spawn then return "spawn "..spawnID.." not found" end
     if spawn.PctHPs() > elixir.Config.HealPctNormal then return "no one is hurt enough yet, most hurt is "..spawn.Name().." at "..spawn.PctHPs().."%" end
-    if spawn.Distance() > 200 then return "heal target "..spawn.Name().." is > 200 distance" end
-
+    
     local isCasted = false
     local lastCastOutput = "no healing ability found"
     local isEmergency = false
@@ -93,7 +92,6 @@ function heal:FocusCast(elixir)
     local spawn = mq.TLO.Spawn("="..elixir.Config.HealFocusName)
     if not spawn() then return false, "focus target "..elixir.Config.HealFocusName.." not found" end
     if spawn.PctHPs() > elixir.Config.HealFocusPctNormal then return false, "focus target "..spawn.Name().." is not hurt enough at "..spawn.PctHPs().."%" end
-    if spawn.Distance() > 200 then return false, "focus target "..spawn.Name().." is > 200 distance" end
 
     local spawnID = spawn.ID()
     local isCasted = false
@@ -151,14 +149,16 @@ function heal:EmergencyCast(elixir, spawnID)
     print("emergency situation detected")
     
     local aaName = "Divine Arbitration"
-    if mq.TLO.Me.AltAbilityReady(aaName)() then
+    if mq.TLO.Me.AltAbilityReady(aaName)() and
+    mq.TLO.Me.AltAbility(aaName).Spell.Range() <= spawn.Distance() then
         mq.cmd(string.format("/casting \"%s\"", aaName))
         elixir.LastActionOutput = string.format("heal ai emergency casting %s on %s", aaName, spawn.Name())
         return true, elixir.LastActionOutput
     end
 
     local aaName = "Celestial Regeneration"
-    if mq.TLO.Me.AltAbilityReady(aaName)() then
+    if mq.TLO.Me.AltAbilityReady(aaName)() and
+    mq.TLO.Me.AltAbility(aaName).Spell.Range() <= spawn.Distance() then
         mq.cmd(string.format("/casting \"%s\"", aaName))
         elixir.LastActionOutput = string.format("heal ai emergency casting %s on %s", aaName, spawn.Name())
         return true, elixir.LastActionOutput
@@ -200,6 +200,8 @@ function heal:CastGem(elixir, targetSpawnID, gemIndex)
     local spell = mq.TLO.Me.Gem(gemIndex)
     if not spell() then return false, "no spell found" end
     if spell.Mana() > mq.TLO.Me.CurrentMana() then return false, "not enough mana (" .. mq.TLO.Me.CurrentMana() .. "/" .. spell.Mana() .. ")" end
+
+    if mq.TLO.Spawn(targetSpawnID).Distance() > spell.Range() then return false, "target too far away" end
 
     self.HealCooldown = mq.gettime() + 1000
     elixir.LastActionOutput = string.format("heal ai casting %s on %s", spell.Name(), mq.TLO.Spawn(targetSpawnID).Name())
