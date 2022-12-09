@@ -24,6 +24,7 @@ local function elixirRender()
     if not elixir.Config.IsElixirAI then
         ImGui.BeginDisabled()
     end
+    
     isNewCheckboxValue, isCheckboxChanged = ImGui.Checkbox("\xef\x81\xb0 Disable Elixir AIs When Window Has Focus", elixir.Config.IsElixirDisabledOnFocus)
     if isCheckboxChanged then
         elixir.Config.IsElixirDisabledOnFocus = isNewCheckboxValue

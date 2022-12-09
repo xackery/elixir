@@ -13,26 +13,43 @@ local function meditateRender()
     local isChanged
     ImGui.BeginGroup()
 
-    local isNewCheckboxValue, isCheckboxChanged = ImGui.Checkbox(meditateElement.Title, elixir.Config.IsHealAI)
+    local isNewCheckboxValue, isCheckboxChanged = ImGui.Checkbox(meditateElement.Title, elixir.Config.IsMeditateAI)
     if isCheckboxChanged then
-        elixir.Config.IsHealAI = isNewCheckboxValue
+        elixir.Config.IsMeditateAI = isNewCheckboxValue
         isChanged = true
     end
     ImGui.SameLine()
-    HelpMarker("Enable Heal AI. This handles all heal logic")
+    HelpMarker("Enable Meditate AI. This will make the player sit when possible")
 
-    if not elixir.Config.IsHealAI then
+    if not elixir.Config.IsMeditateAI then
         ImGui.BeginDisabled()
     end
-    isNewCheckboxValue, isCheckboxChanged = ImGui.Checkbox("\xef\x81\xb0 Disable Elixir AIs When Window Has Focus", elixir.Config.IsElixirDisabledOnFocus)
+
+    isNewCheckboxValue, isCheckboxChanged = ImGui.Checkbox("Meditate During Combat", elixir.Config.IsMeditateDuringCombat)
     if isCheckboxChanged then
-        elixir.Config.IsElixirDisabledOnFocus = isNewCheckboxValue
+        elixir.Config.IsMeditateDuringCombat = isNewCheckboxValue
         isChanged = true
     end
     ImGui.SameLine()
-    HelpMarker("When this EQ window is focused, should Elixir continue running?\nHelpful if you like to tab and take over this character.\nThis means AI will only run when this EQ window is in background.")
+    HelpMarker("When enabled, when you are in combat, still try to meditate")
 
-    if not elixir.Config.IsHealAI then
+    if not elixir.Config.IsMeditateDuringCombat then
+        ImGui.BeginDisabled()
+    end
+
+    isNewCheckboxValue, isCheckboxChanged = ImGui.Checkbox("Subtle Meditating", elixir.Config.IsMeditateSubtle)
+    if isCheckboxChanged then
+        elixir.Config.IsMeditateSubtle = isNewCheckboxValue
+        isChanged = true
+    end
+    ImGui.SameLine()
+    HelpMarker("When enabled, if aggro is greater than 80% on any XTarget, do not try to sit to meditate")
+
+    if not elixir.Config.IsMeditateDuringCombat then
+        ImGui.EndDisabled()
+    end
+    
+    if not elixir.Config.IsMeditateAI then
         ImGui.EndDisabled()
     end
     ImGui.EndGroup()

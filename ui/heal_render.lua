@@ -19,22 +19,130 @@ local function elixirRender()
         isChanged = true
     end
     ImGui.SameLine()
-    HelpMarker("Enable Heal AI. This handles all heal logic")
+    HelpMarker("Enable Heal AI. This enables all healing logic globally")
 
     if not elixir.Config.IsHealAI then
         ImGui.BeginDisabled()
     end
-    isNewCheckboxValue, isCheckboxChanged = ImGui.Checkbox("\xef\x81\xb0 Disable Elixir AIs When Window Has Focus", elixir.Config.IsElixirDisabledOnFocus)
+
+    --- TODO: Healing Normal Pct
+
+    isNewCheckboxValue, isCheckboxChanged = ImGui.Checkbox("Heal Pets", elixir.Config.IsHealPets)
     if isCheckboxChanged then
-        elixir.Config.IsElixirDisabledOnFocus = isNewCheckboxValue
+        elixir.Config.IsHealPets = isNewCheckboxValue
         isChanged = true
     end
     ImGui.SameLine()
-    HelpMarker("When this EQ window is focused, should Elixir continue running?\nHelpful if you like to tab and take over this character.\nThis means AI will only run when this EQ window is in background.")
+    HelpMarker("Heal pets of known allies, this will include raid and xtarget pets if included")
+
+    isNewCheckboxValue, isCheckboxChanged = ImGui.Checkbox("Heal Raid", elixir.Config.IsHealRaid)
+    if isCheckboxChanged then
+        elixir.Config.IsHealRaid = isNewCheckboxValue
+        isChanged = true
+    end
+    ImGui.SameLine()
+    HelpMarker("Heal raid members of known allies")
+
+    isNewCheckboxValue, isCheckboxChanged = ImGui.Checkbox("Heal XTarget", elixir.Config.IsHealXTarget)
+    if isCheckboxChanged then
+        elixir.Config.IsHealXTarget = isNewCheckboxValue
+        isChanged = true
+    end
+    ImGui.SameLine()
+    HelpMarker("Heal xtargets when set to players")
+
+    isNewCheckboxValue, isCheckboxChanged = ImGui.Checkbox("Subtle Casting", elixir.Config.IsHealSubtleCasting)
+    if isCheckboxChanged then
+        elixir.Config.IsHealSubtleCasting = isNewCheckboxValue
+        isChanged = true
+    end
+    ImGui.SameLine()
+    HelpMarker("When enabled, if aggro is greater than 80% on any XTarget, do not try to heal at risk of getting attacked.\nNote that Emergency Healing, if enabled, will ignore Subtle Casting since the situation is considered dire.")
+
+    isNewCheckboxValue, isCheckboxChanged = ImGui.Checkbox("Emergency Healing", elixir.Config.IsHealEmergencyAllowed)
+    if isCheckboxChanged then
+        elixir.Config.IsHealEmergencyAllowed = isNewCheckboxValue
+        isChanged = true
+    end
+    ImGui.SameLine()
+    HelpMarker("When enabled, try to use emergency heals to try to save a bad situation.\nNote that this will prioritize AAs such Divine Arbitration, Celestial Regeneration, and quick casting spells that are not mana efficient to try to save the at risk ally.")
+
+    if not elixir.Config.IsHealEmergencyAllowed then
+        ImGui.BeginDisabled()
+    end
+
+    --- TODO: Healing Emergency Pct
+
+    isNewCheckboxValue, isCheckboxChanged = ImGui.Checkbox("Predict Emergencies", elixir.Config.IsHealEmergencyPredictive)
+    if isCheckboxChanged then
+        elixir.Config.IsHealEmergencyPredictive = isNewCheckboxValue
+        isChanged = true
+    end
+    ImGui.SameLine()
+    HelpMarker("When enabled, Emergency Healing will also be used in cases an ally takes 40% of max health in a short amount of time, predicting a potential emergency situation, but may cause prematurely healing too.")
+    
+    if not elixir.Config.IsHealEmergencyAllowed then
+        ImGui.EndDisabled()
+    end
+
+    isNewCheckboxValue, isCheckboxChanged = ImGui.Checkbox("Focus Healing", elixir.Config.IsHealFocus)
+    if isCheckboxChanged then
+        elixir.Config.IsHealFocus = isNewCheckboxValue
+        isChanged = true
+    end
+    ImGui.SameLine()
+    HelpMarker("When enabled, healing will focus a single spawn that you wish to prioritize over normal healing logic.\nThis is used for cases such as a primary tank needing priority heals while AEs are going off.")
+    
+    if not elixir.Config.IsHealFocus then
+        ImGui.BeginDisabled()
+    end
+
+    --- TODO: Focus Healing Name
+    --- TODO: Focus Healing Normal Pct
+    --- TODO: Focus Healing Spell ID
+
+    isNewCheckboxValue, isCheckboxChanged = ImGui.Checkbox("Focus Emergency Healing", elixir.Config.IsHealFocusEmergencyAllowed)
+    if isCheckboxChanged then
+        elixir.Config.IsHealFocusEmergencyAllowed = isNewCheckboxValue
+        isChanged = true
+    end
+    ImGui.SameLine()
+    HelpMarker("When enabled, try to use emergency heals to try to save a bad situation.\nNote that this will priotize AAs such Divine Arbitration, Celestial Regeneration, and quick casting spells that are not mana efficient to try to save the at risk focused ally.")
+
+    if not elixir.Config.IsHealFocusEmergencyAllowed then
+        ImGui.BeginDisabled()
+    end
+
+    --- TODO: Focus Healing Emergency Pct
+
+    isNewCheckboxValue, isCheckboxChanged = ImGui.Checkbox("Focus Predict Emergencies", elixir.Config.IsHealFocusEmergencyPredictive)
+    if isCheckboxChanged then
+        elixir.Config.IsHealFocusEmergencyPredictive = isNewCheckboxValue
+        isChanged = true
+    end
+    ImGui.SameLine()
+    HelpMarker("When enabled, Emergency Healing will also be used in cases an ally takes 40% of max health in a short amount of time, predicting a potential emergency situation, but may cause prematurely healing too.")
+
+    if not elixir.Config.IsHealFocusEmergencyAllowed then
+        ImGui.EndDisabled()
+    end
+
+    isNewCheckboxValue, isCheckboxChanged = ImGui.Checkbox("Focus Fallback Healing", elixir.Config.IsHealFocusFallback)
+    if isCheckboxChanged then
+        elixir.Config.IsHealFocusFallback = isNewCheckboxValue
+        isChanged = true
+    end
+    ImGui.SameLine()
+    HelpMarker("When enabled, if focus target does not meet requirement to need a heal, fallback to trying to heal other allies.")
+
+    if not elixir.Config.IsHealFocus then
+        ImGui.EndDisabled()
+    end
 
     if not elixir.Config.IsHealAI then
         ImGui.EndDisabled()
     end
+
     ImGui.EndGroup()
     return isChanged
 end

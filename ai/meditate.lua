@@ -4,7 +4,9 @@ local mq = require('mq')
 --- meditate represents the Meditate AI, a system to figure out if I should meditate or not
 ---@class meditate
 ---@field public Output string # AI Debug String
----@field public meditateCooldown number # cooldown timer to use meditate
+---@field private meditateCooldown number # cooldown timer to use meditate
+---@field private lastSitHPSnapshot number # whenever we try to sit, we snapshot the last HP to see if we got hurt
+---@field private isLastStateSitting boolean # this is a check to verify we stood up recently
 meditate = {}
 
 ----@returns meditate string
@@ -20,14 +22,45 @@ end
 ----@returns output string
 function meditate:Check(elixir)
     if not elixir.Config.IsElixirAI then return "elixir ai not running" end
-    if elixir.Config.IsElixirDisabledOnFocus and  mq.TLO.EverQuest.Foreground() then return "AI frozen, disabled on focus" end
+    if not elixir.Config.IsMeditateAI then return "meditate ai not running" end
+    if mq.TLO.Me.Sitting() then
+        self.lastSitHPSnapshot = mq.TLO.Me.PctHPs()
+        self.isLastStateSitting = true
+        return "currently meditating " .. mq.TLO.Me.PctHPs() .."% hp " .. mq.TLO.Me.PctMana() .."% mana"
+    end
+    if elixir.Config.IsElixirDisabledOnFocus and  mq.TLO.EverQuest.Foreground() then return "window focused, ai frozen" end
     if elixir.ZoneCooldown > mq.gettime() then return "on zone cooldown" end
-    --if meditate.meditateCooldown > mq.gettime() then return "on meditate cooldown" end
+    if meditate.meditateCooldown > mq.gettime() then return "on meditate cooldown" end
+    if mq.TLO.Me.PctMana() >= 99 and mq.TLO.Me.PctHPs() > 99 then return "full mana and health, no need to meditate" end
     if elixir.IsActionCompleted then return "previous action completed" end
-    if mq.TLO.Me.Stunned() then return "stunned" end
-    if AreObstructionWindowsVisible() then return "window obstructs casting" end
-    if mq.TLO.Me.Moving() then return "moving" end
-    if mq.TLO.Me.Casting() then return "already casting" end
+    if mq.TLO.Me.Stunned() then
+        self.MeditateCooldown = mq.gettime() + 6000
+        return "stunned recently, waiting 6s to meditate"
+    end
+    if AreObstructionWindowsVisible() then return "window obstructs sitting" end
+    if mq.TLO.Me.Moving() then
+        self.MeditateCooldown = mq.gettime() + 6000
+        return "moved recently, waiting 6s to meditate"
+    end
+    if mq.TLO.Me.Mount.ID then return "already on a mount" end
+    if mq.TLO.Me.Casting() then return "currently casting" end
     if mq.TLO.Me.Animation() == 16 then return "feign death" end
-    return "no meditating spell available"
+    if mq.TLO.Me.Sitting() then return "already sitting" end
+    if mq.TLO.Me.CombatState() == "COMBAT" then
+        if not elixir.Config.IsMeditateDuringCombat then
+            return "in combat, can't meditate as per settings"
+        end
+    end
+    if elixir.Config.IsMeditateSubtle and IsMeHighAggro() then return "subtle meditate enabled and currently high hate" end
+    if self.isLastStateSitting then
+        -- ok, so we stood up last update, and potentially got hurt, let's see how much
+        if mq.TLO.Me.PctHPs() < self.lastSitHPSnapshot then
+            self.MeditateCooldown = mq.gettime() + 12000
+            return "got hit in combat, waiting 12s to sit"
+        end
+    end
+
+    mq.cmd("/sit")
+    elixir.LastActionOutput = "meditate ai sitting"
+    return "trying to sit to meditate"
 end

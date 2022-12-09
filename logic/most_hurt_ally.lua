@@ -17,12 +17,12 @@ function MostHurtAlly()
             local pG = mq.TLO.Group.Member(i)
             if pG() and
             pG.Type() ~= "CORPSE" and
-            pG.Distance() < 150 and      
+            pG.Distance() < 200 and      
             not pG.Offline() then      
                 local pSpawn = pG.Spawn
-                if elixir.config.IsHealAIPets and
+                if elixir.Config.IsHealPets and
                 pSpawn.Pet() and
-                pSpawn.Distance() < 150 and
+                pSpawn.Distance() < 200 and
                 pSpawn.PctHPs() < spawnPctHPs then
                     spawnPctHPs = pSpawn.Pet.PctHPs()
                     finalSpawnID = pSpawn.Pet.ID()
@@ -35,17 +35,17 @@ function MostHurtAlly()
         end
     end
 
-    if elixir.Config.IsHealAIRaid and
+    if elixir.Config.IsHealRaid and
     mq.TLO.Raid.Members() then
         for i = 0, mq.TLO.Raid.Members() do
             local pR = mq.TLO.Raid.Member(i)
             if pR() and
             pR.Type() ~= "CORPSE" and
-            pR.Distance() < 150 then
+            pR.Distance() < 200 then
                 local pSpawn = pR.Spawn
-                if elixir.config.IsHealAIPets and
+                if elixir.Config.IsHealPets and
                 pSpawn.Pet() and
-                pSpawn.Pet.Distance() < 150 and
+                pSpawn.Pet.Distance() < 200 and
                 pSpawn.Pet.PctHPs() < spawnPctHPs then
                     spawnPctHPs = pSpawn.Pet.PctHPs()
                     finalSpawnID = pSpawn.Pet.ID()
@@ -57,14 +57,17 @@ function MostHurtAlly()
             end
         end
     end
-    if elixir.Config.IsHealAIXTarget and
+    if elixir.Config.IsHealXTarget and
     mq.TLO.Me.XTarget() then
         for i = 0, mq.TLO.Me.XTarget() do
             local xt = mq.TLO.Me.XTarget(i)
             if xt() and
-            xt.TargetType() == 2 and
+            (xt.TargetType() == "Specific PC" or
+            xt.TargetType() == "Raid Assist 1" or
+            xt.TargetType() == "Raid Assist 2" or
+            xt.TargetType() == "Raid Assist 3") and
             xt.Type() ~= "CORPSE" and
-            xt.Distance() < 150 and
+            xt.Distance() < 200 and
             xt.PctHPs() > spawnPctHPs then
                 spawnPctHPs = xt.PctHPs()
                 finalSpawnID = xt.ID()

@@ -25,10 +25,10 @@ elixir = {
     CharmAI = require('ai/charm'),
     DebuffAI = require('ai/debuff'),
     DotAI = require('ai/dot'),
-    NukeAI = require('ai/nuke'),
     HealAI = require('ai/heal'),
-    TargetAI = require('ai/target'),
     MeditateAI = require('ai/meditate'),
+    NukeAI = require('ai/nuke'),
+    TargetAI = require('ai/target'),
     ZoneCooldown = 0,
     IsActionCompleted = false,
     lastZoneID = 0,
@@ -39,9 +39,26 @@ elixir = {
 ---@field public IsElixirAI boolean # is elixir running
 ---@field public IsElixirDisabledOnFocus boolean # should elixir not run if focused
 ---@field public IsHealAI boolean # Is Heal AI enabled
----@field public IsHealAIPets boolean # Is Pets Healing enabled
----@field public IsHealAIRaid boolean # Is Raid Healing enabled
+---@field public IsHealSubtleCasting boolean # Is Heal AI supposed to cast when high aggro
+---@field public IsHealPets boolean # Is Pets Healing enabled
+---@field public IsHealRaid boolean # Is Raid Healing enabled
+---@field public IsHealXTarget boolean # Is XTarget Healing enabled
+---@field public HealPctNormal number # If set, Heal AI will try healing a target when at pct with normal heal
+---@field public IsHealEmergencyAllowed boolean  # If set, Heal AI will try use emergeny heals
+---@field public HealPctEmergency number # If set, Heal AI will try healing a target when at pct with emergency heal
+---@field public IsHealFocus boolean  # If set, Heal AI try to heal a focus target
+---@field public HealFocusName string # If set, Heal AI will focus on provided spawn name
+---@field public HealFocusSpellID number # If set, Heal AI will focus on provided spell ID on focus ID
+---@field public HealFocusPctNormal number # If set, Heal AI will focus on healing a target with pct normal heal
+---@field public IsHealFocusEmergencyAllowed boolean  # If set, Heal AI will try use emergeny heals
+---@field public HealFocusPctEmergency number # If set, Heal AI will focus on healing a target with pct emergency heal
+---@field public IsHealEmergencyPredictive boolean  # If set, Heal AI on emergencies will predict a bad situation
+---@field public IsHealFocusEmergencyPredictive boolean  # If set, Heal AI on focus emergencies will predict a bad situation
+---@field public IsHealFocusFallback boolean # If true, Heal AI will fall back to normal healing if focus does not need healing
 ---@field public IsCharmAI boolean # Is Charm AI enabled
+---@field public IsMeditateAI boolean # Is Meditate AI enabled
+---@field public IsMeditateDuringCombat boolean # Is Meditate allowed if in combat
+---@field public IsMeditateSubtle boolean # Is Meditate AI supposed to sit when high aggro
 ---@field public IsElixirUIOpen boolean # Is the Elixir UI open
 ---@field public IsDebugEnabled boolean # Is debugging info enabled
 ---@field public IsDebugVerboseEnabled boolean # Is echoing out verbose debugging enabled
@@ -52,10 +69,13 @@ function InitializeConfig()
         IsElixirAI = true,
         IsElixirDisabledOnFocus = false,
         IsHealAI = true,
-        IsHealAIPets = false,
-        IsHealAIRaid = false,
+        IsHealPets = true,
+        IsHealRaid = true,
+        IsHealXTarget = true,
         IsElixirUIOpen = true,
         IsDebugEnabled = true,
+        IsMeditateAI = true,
+        IsMeditateDuringCombat = true,
         IsDebugVerboseEnabled = true,
     }
 end
@@ -134,8 +154,8 @@ function elixir:Update()
     charm:Cast(elixir)
     target:Check(elixir)
     nuke:Cast(elixir)
-    meditate:Check(elixir)
     buff:Cast(elixir)
+    self.MeditateAI.Output = meditate:Check(elixir)
 end
 
 ---DebugPrintF prints if debug verbose and debug mode are both enabled
