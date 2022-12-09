@@ -11,7 +11,6 @@ function MostHurtAlly()
         spawnPctHPs = mq.TLO.Me.PctHPs()
         finalSpawnID = mq.TLO.Me.ID()
     end
-
     if mq.TLO.Group.GroupSize() then
         for i = 0, mq.TLO.Group.Members() do
             local pG = mq.TLO.Group.Member(i)
@@ -21,13 +20,15 @@ function MostHurtAlly()
             not pG.Offline() then      
                 local pSpawn = pG.Spawn
                 if elixir.Config.IsHealPets and
+                pSpawn() and
                 pSpawn.Pet() and
+                pSpawn.Pet.ID() > 0 and
                 pSpawn.Distance() < 200 and
                 pSpawn.PctHPs() < spawnPctHPs then
                     spawnPctHPs = pSpawn.Pet.PctHPs()
                     finalSpawnID = pSpawn.Pet.ID()
                 end
-                if pSpawn.PctHPs() < spawnPctHPs then
+                if pSpawn() and pSpawn.PctHPs() < spawnPctHPs then
                     spawnPctHPs = pSpawn.PctHPs()
                     finalSpawnID = pSpawn.ID()
                 end

@@ -13,28 +13,27 @@ local function buffRender()
     local isChanged
     ImGui.BeginGroup()
 
-    local isNewCheckboxValue, isCheckboxChanged = ImGui.Checkbox(buffElement.Icon .. " Heal AI", elixir.Config.IsHealAI)
+    local isNewCheckboxValue, isCheckboxChanged = ImGui.Checkbox(buffElement.Title, elixir.Config.IsBuffAI)
     if isCheckboxChanged then
-        elixir.Config.IsHealAI = isNewCheckboxValue
+        elixir.Config.IsBuffAI = isNewCheckboxValue
         isChanged = true
     end
     ImGui.SameLine()
-    HelpMarker("Enable Heal AI. This handles all heal logic")
+    HelpMarker("Enable Buff AI. This handles all buff logic")
 
-    if not elixir.Config.IsHealAI then
-        ImGui.BeginDisabled()
-    end
-    isNewCheckboxValue, isCheckboxChanged = ImGui.Checkbox("\xef\x81\xb0 Disable Elixir AIs When Window Has Focus", elixir.Config.IsElixirDisabledOnFocus)
+    ImGui.BeginDisabled(not elixir.Config.IsBuffAI)
+
+    -- TODO: buffpctnormal
+
+    isNewCheckboxValue, isCheckboxChanged = ImGui.Checkbox("Subtle Casting", elixir.Config.IsBuffSubtleCasting)
     if isCheckboxChanged then
-        elixir.Config.IsElixirDisabledOnFocus = isNewCheckboxValue
+        elixir.Config.IsBuffSubtleCasting = isNewCheckboxValue
         isChanged = true
     end
     ImGui.SameLine()
-    HelpMarker("When this EQ window is focused, should Elixir continue running?\nHelpful if you like to tab and take over this character.\nThis means AI will only run when this EQ window is in background.")
+    HelpMarker("When enabled, if aggro is greater than 80% on target, do not try to buff at risk of getting attacked.")
 
-    if not elixir.Config.IsHealAI then
-        ImGui.EndDisabled()
-    end
+    ImGui.EndDisabled()
     ImGui.EndGroup()
     return isChanged
 end

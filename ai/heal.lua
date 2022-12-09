@@ -239,6 +239,7 @@ function heal:snapshotAlliesPctHPs()
                 local pSpawn = pR.Spawn
                 if elixir.Config.IsHealPets and
                 pSpawn.Pet() and
+                pSpawn.Pet.ID() > 0 and
                 pSpawn.Pet.Distance() < 200 then
                     self.spawnSnapshot[pSpawn.Pet.ID()] = pSpawn.Pet.PctHPs()
                 end
