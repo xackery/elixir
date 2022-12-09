@@ -57,7 +57,7 @@ function SettingsRender()
     --  MD_LOCAL_PHARMACY = '\xee\x95\x90',
 
     for selectionIndex, element in pairs(elements) do
-        _, isClicked = ImGui.Selectable(element.Title, elixir.SettingsTabIndex == selectionIndex)
+        local _, isClicked = ImGui.Selectable(element.Title, elixir.SettingsTabIndex == selectionIndex)
         if isClicked then elixir.SettingsTabIndex = element.Index end
         if element.IsTitleSeparatorAfter then
             ImGui.Separator()
