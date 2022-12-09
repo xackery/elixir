@@ -6,6 +6,7 @@ local mq = require('mq')
 ---@field private debuffCooldown number # cooldown between debuffing
 debuff = {
     Output = '',
+    debuffCooldown = 0,
 }
 
 ---Attempts to cast a debuff spell
@@ -25,6 +26,7 @@ function debuff:Cast(elixir)
     if mq.TLO.Me.Animation() == 16 then return "feign death" end
     local spawn = mq.TLO.Target
     if not spawn() then return "no target" end
+    if spawn.Type() ~= "NPC" then return "target is not NPC" end
     if spawn.PctHPs() > elixir.Config.DebuffPctNormal then return spawn.Name() .." is not hurt enough to debuff at "..spawn.PctHPs().."%" end
     if not spawn.LineOfSight() then return "target "..spawn.Name().." is not line of sight" end
 

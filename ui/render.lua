@@ -29,12 +29,12 @@ elements[elixirElement.Index] = elixirElement
 elements[ignoreGemsElement.Index] = ignoreGemsElement
 elements[healElement.Index] = healElement
 elements[charmElement.Index] = charmElement
-elements[meditateElement.Index] = meditateElement
 elements[targetElement.Index] = targetElement
-elements[buffElement.Index] = buffElement
-elements[nukeElement.Index] = nukeElement
-elements[dotElement.Index] = dotElement
 elements[debuffElement.Index] = debuffElement
+elements[dotElement.Index] = dotElement
+elements[nukeElement.Index] = nukeElement
+elements[buffElement.Index] = buffElement
+elements[meditateElement.Index] = meditateElement
 elements[debugElement.Index] = debugElement
 
 function SettingsRender()
@@ -165,6 +165,60 @@ function OverlayRender(isOpen)
                 ImGui.Text(healElement.FocusIcon) -- focus heal
                 ImGui.PopStyleColor(1)
             end
+        end
+
+        if elixir.Config.IsCharmAI then
+            windowHeight = windowHeight + 20
+            ImGui.NewLine()
+            ImGui.SameLine(4)
+            enabledIconStyle()
+            ImGui.Text(charmElement.Icon) -- heal
+            ImGui.PopStyleColor(1)
+        end
+
+        if elixir.Config.IsTargetAI then
+            windowHeight = windowHeight + 20
+            ImGui.NewLine()
+            ImGui.SameLine(4)
+            enabledIconStyle()
+            ImGui.Text(targetElement.Icon) -- heal
+            ImGui.PopStyleColor(1)
+        end
+
+        if elixir.Config.IsDebuffAI then
+            windowHeight = windowHeight + 20
+            ImGui.NewLine()
+            ImGui.SameLine(4)
+            enabledIconStyle()
+            ImGui.Text(debuffElement.Icon) -- heal
+            ImGui.PopStyleColor(1)
+        end
+
+        if elixir.Config.IsDotAI then
+            windowHeight = windowHeight + 20
+            ImGui.NewLine()
+            ImGui.SameLine(4)
+            enabledIconStyle()
+            ImGui.Text(dotElement.Icon) -- heal
+            ImGui.PopStyleColor(1)
+        end
+
+        if elixir.Config.IsNukeAI then
+            windowHeight = windowHeight + 20
+            ImGui.NewLine()
+            ImGui.SameLine(4)
+            enabledIconStyle()
+            ImGui.Text(nukeElement.Icon) -- heal
+            ImGui.PopStyleColor(1)
+        end
+
+        if elixir.Config.IsBuffAI then
+            windowHeight = windowHeight + 20
+            ImGui.NewLine()
+            ImGui.SameLine(4)
+            enabledIconStyle()
+            ImGui.Text(buffElement.Icon) -- heal
+            ImGui.PopStyleColor(1)
         end
 
         if elixir.Config.IsMeditateAI then

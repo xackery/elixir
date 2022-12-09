@@ -3,6 +3,7 @@ local mq = require('mq')
 
 ---@class SpellTag # Keeps cached information about a spell
 ---@field IsHeal boolean # Is spell a heal
+---@field IsHot boolean # Is spell a heal over time hot
 ---@field IsDebuff boolean # Is spell a debuff (slows, snares, things that don't break mez)
 ---@field IsBuff boolean # Is spell a buff (beneficial ally spell)
 ---@field IsNuke boolean # Is spell a nuke (damage component attached)
@@ -29,6 +30,7 @@ local mq = require('mq')
 ---@field IsHaste boolean # Is spell a haste
 ---@field IsSlow boolean # Is spell a slow
 ---@field IsFeignDeath boolean # Is spell one that triggers FD
+---@field IsDeathPact # Is spell a divine intervention line spell
 ---@field StunDuration number
 ---@field DamageAmount number
 ---@field HealAmount number
@@ -59,35 +61,33 @@ local function initializeSpellTag(spellID)
         local base = currentSpell.Base(i)()
         local base2 = currentSpell.Base2(i)()
         local max = currentSpell.Max(i)()
-        if attr == 0 then --- SPA_HP
-            if max > 0 then --- heal/hot
-                if currentSpell.Duration.Ticks() < 5 and base > 0 then -- regen etc are not heals
+        if attr == 0 then --- SPA_HP    
+            if base > 0 then
+                if currentSpell.Duration.Ticks() == 0 then
                     spellTag.IsHeal = true
                     spellTag.HealAmount = base
                 end
-                if currentSpell.Duration.Ticks() > 0 then
-                    spellTag.IsBuff = true
-                end
-                if currentSpell.CategoryID == 114 then
-                    spellTag.IsLifetap = true
+
+                if currentSpell.Duration.Ticks() > 1 and currentSpell.Duration.Ticks() < 20 then
+                    spellTag.IsHot = true
+                    spellTag.HealAmount = base * currentSpell.Duration.Ticks()
                 end
             end
-            if base < 0 and spellTag.DamageAmount == 0 then
+
+            if currentSpell.Duration.Ticks() > 0 and base == 0 then
+                spellTag.IsBuff = true
+            end
+            if currentSpell.CategoryID == 114 then
+                spellTag.IsLifetap = true
+            end
+            
+            if base < 0 then
                 if currentSpell.Duration.Ticks() > 0 then
                     spellTag.IsDoT = true
                 else
                     spellTag.IsNuke = true
                 end
                 spellTag.DamageAmount = -base
-            end
-            if max < 0 then --- nuke/dot
-                spellTag.IsDetrimental = true
-                DamageAmount = -max
-                if currentSpell.Duration.Ticks() > 0 then
-                    spellTag.IsDoT = true
-                else
-                    spellTag.IsNuke = true
-                end
             end
         end
 
@@ -177,6 +177,11 @@ local function initializeSpellTag(spellID)
 
         if attr == 22 then -- SPA_CHARM
             spellTag.IsCharm = true
+            spellTag.IsDebuff = true
+            spellTag.IsDetrimental = true
+        end
+
+        if attr == 23 then -- SPA_FEAR
             spellTag.IsDebuff = true
             spellTag.IsDetrimental = true
         end
@@ -450,11 +455,13 @@ local function initializeSpellTag(spellID)
         end
 
         if attr == 100 then -- SPA_HEALDOT
-            spellTag.IsHeal = true
+            spellTag.IsHot = true
+            spellTag.HealAmount = base * currentSpell.Duration.Ticks()
         end
 
         if attr == 101 then -- SPA_COMPLETEHEAL
             spellTag.IsHeal = true
+            spellTag.HealAmount = base
         end
 
         if attr == 102 then -- SPA_PET_FEARLESS
@@ -629,6 +636,7 @@ local function initializeSpellTag(spellID)
         end
 
         if attr == 150 then -- SPA_DIVINE_INTERVENTION
+            spellTag.IsDeathPact = true
         end
 
         if attr == 151 then -- SPA_POCKET_PET
@@ -1778,7 +1786,7 @@ local function initializeSpellTag(spellID)
     end
 
     --- Clean up cases a debuff is dealing damage, turning it into a dot/nuke
-    if spellTag.IsDebuff and spellTag.DamageAmount > 0 then
+    if spellTag.IsDebuff and spellTag.DamageAmount and spellTag.DamageAmount > 0 then
         spellTag.IsDebuff = false
         if currentSpell.Duration.Ticks() > 0 then
             spellTag.IsDoT = true
@@ -1811,10 +1819,16 @@ local function initializeSpellTag(spellID)
         local tags = ""
         for property, value in pairs(spellTag) do
             if value then
-                tags = tags .. property .. ", "
+                if type(value) == "number" then
+                    tags = string.format("%s%s=%d, ", tags, property, value)
+                else
+                    tags = tags .. property .. ", "
+                end
             end
-            elixir:DebugPrintf("initializing new spell %s (%d) tags: %s", currentSpell.Name(), spellID, tags)
+            
         end
+        if string.len(tags) > 3 then tags = string.sub(tags, 0, -3) end
+        elixir:DebugPrintf("initialized new spell %s (%d) tags: %s", currentSpell.Name(), spellID, tags)
     end
 
     return spellTag

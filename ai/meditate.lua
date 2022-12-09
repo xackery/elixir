@@ -7,15 +7,10 @@ local mq = require('mq')
 ---@field private meditateCooldown number # cooldown timer to use meditate
 ---@field private lastSitHPSnapshot number # whenever we try to sit, we snapshot the last HP to see if we got hurt
 ---@field private isLastStateSitting boolean # this is a check to verify we stood up recently
-meditate = {}
-
-----@returns meditate string
-function meditate:Initialize()
-    return {
-        Output = '',
-        meditateCooldown = 0,
-    }
-end
+meditate = {
+    Output = '',
+    meditateCooldown = 0,
+}
 
 ---Attempts to cast a meditate
 ---@param elixir elixir

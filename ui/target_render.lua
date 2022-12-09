@@ -1,6 +1,6 @@
 ---@type Element
 local targetElement = {}
-targetElement.Index = 5
+targetElement.Index = 4
 targetElement.Icon = '\xef\x85\x80'
 targetElement.Title = targetElement.Icon .. ' Target AI'
 

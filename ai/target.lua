@@ -6,6 +6,7 @@ local mq = require('mq')
 ---@field private targetCooldown number # cooldown timer to use target
 target = {
     Output = '',
+    targetCooldown = 0
 }
 
 ---Attempts to cast a target spell

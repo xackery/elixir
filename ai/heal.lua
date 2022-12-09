@@ -9,15 +9,9 @@ require('logic')
 ---@field private spawnSnapshot number[] # snapshot of spawn HPs for predictive healing
 heal = {
     spawnSnapshot = {},
+    Output = '',
+    healCooldown = 0,
 }
-
----@returns heal string
-function heal:Initialize()
-    return {
-        Output = '',
-        healCooldown = 0
-    }
-end
 
 ---Attempts to cast a heal
 ---@param elixir elixir

@@ -1,6 +1,6 @@
 ---@type Element
 local meditateElement = {}
-meditateElement.Index = 4
+meditateElement.Index = 9
 meditateElement.Icon = '\xee\x95\x8b'
 meditateElement.CombatIcon = '\xef\x84\xb2'
 meditateElement.Title = meditateElement.Icon .. ' Meditate AI'

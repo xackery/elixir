@@ -1,7 +1,8 @@
 ---@type Mq
 local mq = require('mq')
 
-local Version = "v0.5.3"
+local Version = "v0.5.4"
+
 
 ---@class elixir
 ---@field public IsTerminated boolean # Is Elixir about to exit?
@@ -21,7 +22,6 @@ local Version = "v0.5.3"
 ---@field private lastZoneID number # Last Zone ID snapshotted on update
 elixir = {
     LastActionOutput = '',
-    Config = {},
     Gems = {},
     Buttons = {},
     BuffAI = require('ai/buff'),
@@ -79,6 +79,8 @@ elixir = {
 ---@field public TargetMinRange number # Distance to target assist mob
 ---@field public IsTargetAutoAttack boolean # Should auto attack be turned on if close to mob
 ---@field public IsBuffAI boolean # Is Buff AI enabled
+---@field public BuffPctNormal number # % to buff normal
+---@field public IsBuffSubtleCasting boolean # Is buffing a subtle casting feature
 ---@field public IsDotAI boolean # Is Dot AI enabled
 ---@field public DotPctNormal number # % to dot normal
 ---@field public IsDotSubtleCasting boolean # Is dotting a subtle casting feature
@@ -94,65 +96,64 @@ elixir = {
 ---@field public IsElixirUIOpen boolean # Is the Elixir UI open
 ---@field public IsDebugEnabled boolean # Is debugging info enabled
 ---@field public IsDebugVerboseEnabled boolean # Is echoing out verbose debugging enabled
-Config = {}
+elixir.Config = {
+    IsElixirAI = true,
+    IsEQInForeground = true,
+    IsInGame = false,
+    IsElixirOverlayUI = true,
+    IsElixirDisabledOnFocus = false,
+    IsHealAI = true,
+    HealPctNormal = 50,
+    HealPctEmergency = 30,
+    IsHealSubtleCasting = false,
+    IsHealFocus = false,
+    HealFocusPctNormal = 50,
+    HealFocusPctEmergency = 30,
+    IsHealFocusEmergencyAllowed = false,
+    IsHealEmergencyAllowed = false,
+    IsHealEmergencyPredictive = false,
+    IsHealFocusEmergencyPredictive = false,
+    IsHealFocusFallback = false,
+    IsHealRaid = false,
+    IsHealPets = true,
+    IsHealXTarget = true,
+    IsElixirUIOpen = true,
+    IsDebugEnabled = true,
+    IsMeditateAI = true,
+    IsCharmAI = true,
+    IsTargetAI = true,
+    IsTargetPetAssist = true,
+    TargetMinRange = 40,
+    IsTargetAutoAttack = false,
+    IsBuffAI = true,
+    BuffPctNormal = 95,
+    IsBuffSubtleCasting = true,
+    IsDotAI = true,
+    DotPctNormal = 95,
+    IsDotSubtleCasting = true,
+    IsNukeAI = true,
+    NukePctNormal = 95,
+    IsNukeSubtleCasting = true,
+    IsDebuffAI = true,
+    DebuffPctNormal = 95,
+    IsDebuffSubtleCasting = true,
+    IsMeditateDuringCombat = true,
+    IsDebugVerboseEnabled = true,
+    IsGem1Ignored = false,
+    IsGem2Ignored = false,
+    IsGem3Ignored = false,
+    IsGem4Ignored = false,
+    IsGem5Ignored = false,
+    IsGem6Ignored = false,
+    IsGem7Ignored = false,
+    IsGem8Ignored = false,
+    IsGem9Ignored = false,
+    IsGem10Ignored = false,
+    IsGem11Ignored = false,
+    IsGem12Ignored = false,
+    IsGem13Ignored = false,
+}
 
-function InitializeConfig()
-    return {
-        IsElixirAI = true,
-        IsEQInForeground = true,
-        IsInGame = false,
-        IsElixirOverlayUI = true,
-        IsElixirDisabledOnFocus = false,
-        IsHealAI = true,
-        HealPctNormal = 50,
-        HealPctEmergency = 30,
-        IsHealSubtleCasting = false,
-        IsHealFocus = false,
-        HealFocusPctNormal = 50,
-        HealFocusPctEmergency = 30,
-        IsHealFocusEmergencyAllowed = false,
-        IsHealEmergencyAllowed = false,
-        IsHealEmergencyPredictive = false,
-        IsHealFocusEmergencyPredictive = false,
-        IsHealFocusFallback = false,
-        IsHealRaid = false,
-        IsHealPets = true,
-        IsHealXTarget = true,
-        IsElixirUIOpen = true,
-        IsDebugEnabled = true,
-        IsMeditateAI = true,
-        IsCharmAI = true,
-        IsTargetAI = true,
-        IsTargetPetAssist = true,
-        TargetMinRange = 40,
-        IsTargetAutoAttack = false,
-        IsBuffAI = true,
-        IsDotAI = true,
-        DotPctNormal = 95,
-        IsDotSubtleCasting = true,
-        IsNukeAI = true,
-        NukePctNormal = 95,
-        IsNukeSubtleCasting = true,
-        IsDebuffAI = true,
-        DebuffPctNormal = 95,
-        IsDebuffSubtleCasting = true,
-        IsMeditateDuringCombat = true,
-        IsDebugVerboseEnabled = true,
-        IsGem1Ignored = false,
-        IsGem2Ignored = false,
-        IsGem3Ignored = false,
-        IsGem4Ignored = false,
-        IsGem5Ignored = false,
-        IsGem6Ignored = false,
-        IsGem7Ignored = false,
-        IsGem8Ignored = false,
-        IsGem9Ignored = false,
-        IsGem10Ignored = false,
-        IsGem11Ignored = false,
-        IsGem12Ignored = false,
-        IsGem13Ignored = false,
-    }
-end
 
 ---@class Gem
 ---@field SpellID number # Which spell ID is memorized to this gem, used for checking on change
@@ -189,7 +190,6 @@ local function loadConfig()
     local path = string.format("elixir_%s_%s.lua", mq.TLO.EverQuest.Server(), mq.TLO.Me.Name())
     
     if os.rename(path, path) and true then
-        elixir.Config = InitializeConfig()
         mq.pickle(path, elixir.Config)
         print("created new config data")
         return
@@ -198,7 +198,6 @@ local function loadConfig()
     local configData, err = loadfile(mq.configDir..'/'..path)
     if err then
         print("failed to load settings "..path..": "..err)
-        elixir.Config = InitializeConfig()
         mq.pickle(path, elixir.Config)
         return
     end
@@ -263,23 +262,16 @@ MovementGlobalCooldown = nil
 
 function elixir:Initialize()
     self.Version = Version
-    loadConfig()
-    sanitizeConfig()
+    print("starting elixir ".. self.Version)
+    --loadConfig()
+    --sanitizeConfig()
 
     for i = 1, mq.TLO.Me.NumGems() do
         self.Gems[i] = InitializeGem(i)
     end
-    self.HealAI:Initialize()
+
     self.MaxGemCount = mq.TLO.Me.NumGems()
     self.LastActionOutput = ''
-    self.BuffAI.Output = ''
-    self.CharmAI.Output = ''
-    self.DebuffAI.Output = ''
-    self.DotAI.Output = ''
-    self.HealAI.Output = ''
-    self.MeditateAI.Output = ''
-    self.NukeAI.Output = ''
-    self.TargetAI.Output = ''
 end
 
 --- Reset will reset all strings for each update
@@ -312,11 +304,13 @@ function elixir:Update()
     end
 
     self.HealAI.Output = self.HealAI:Cast(elixir)
-    charm:Cast(elixir)
-    target:Check(elixir)
-    nuke:Cast(elixir)
-    buff:Cast(elixir)
-    self.MeditateAI.Output = meditate:Check(elixir)
+    self.CharmAI.Output = self.CharmAI:Cast(elixir)
+    self.TargetAI.Output = self.TargetAI:Check(elixir)
+    self.DebuffAI.Output = self.DebuffAI:Cast(elixir)
+    self.DotAI.Output = self.DotAI:Cast(elixir)
+    self.NukeAI.Output = self.NukeAI:Cast(elixir)
+    self.BuffAI.Output = self.BuffAI:Cast(elixir)
+    self.MeditateAI.Output = self.MeditateAI:Check(elixir)
 end
 
 ---DebugPrintF prints if debug verbose and debug mode are both enabled

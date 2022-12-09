@@ -1,7 +1,7 @@
 ---@type Element
 local buffElement = {}
-buffElement.Index = 6
-buffElement.Icon = '\xef\x84\xb2'
+buffElement.Index = 8
+buffElement.Icon = '\xef\x81\xa2'
 buffElement.Title = buffElement.Icon .. ' Buff AI'
 
 ---@returns isChanged boolean # if a config change is detected, returns true
