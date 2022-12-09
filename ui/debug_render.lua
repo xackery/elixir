@@ -28,6 +28,7 @@ local function debugRender()
 
     ImGui.Text("Last Action: " .. elixir.LastActionOutput)
     ImGui.Text("Heal AI: " .. elixir.HealAI.Output)
+    ImGui.Text("Meditate AI: " .. elixir.MeditateAI.Output)
     if elixir.MaxGemCount then
         for i = 1, elixir.MaxGemCount do
             ImGui.Text("Gem "..(i)..": " .. elixir.Gems[i].Output)

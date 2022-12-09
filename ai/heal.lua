@@ -7,14 +7,15 @@ require('logic')
 ---@field public Output string # AI Debug String
 ---@field private healCooldown number # cooldown timer to use heal
 ---@field private spawnSnapshot number[] # snapshot of spawn HPs for predictive healing
-heal = {}
+heal = {
+    spawnSnapshot = {},
+}
 
 ---@returns heal string
 function heal:Initialize()
     return {
         Output = '',
-        healCooldown = 0,
-        spawnSnapshot = {},
+        healCooldown = 0
     }
 end
 
@@ -26,29 +27,25 @@ function heal:Cast(elixir)
     if not elixir.Config.IsHealAI then return "heal ai not running" end
     if elixir.Config.IsElixirDisabledOnFocus and  mq.TLO.EverQuest.Foreground() then return "window focused, ai frozen" end
     if elixir.ZoneCooldown > mq.gettime() then return "on zone cooldown" end
-    if self.healCooldown > mq.gettime() then return "on heal cooldown" end
+    if self.healCooldown and self.healCooldown > mq.gettime() then return "on heal cooldown" end
     if elixir.IsActionCompleted then return "previous action completed" end
     if mq.TLO.Me.Stunned() then return "stunned" end
     if AreObstructionWindowsVisible() then return "window obstructs casting" end
     if mq.TLO.Me.Moving() then return "moving" end
-    if mq.TLO.Me.Casting() then return "already casting" end
+    if mq.TLO.Me.Casting.ID() then return string.format("already casting %s", mq.TLO.Me.Casting.Name()) end
+    if mq.TLO.Window("Casting").Open() then return "casting window open" end
     if mq.TLO.Me.Animation() == 16 then return "feign death" end
 
     local spawnID = MostHurtAlly()
     
     local isFocusCasted, focusOutput = heal:FocusCast(elixir)
     if isFocusCasted then return focusOutput end
-    if not elixir.Config.IsHealFocusFallback then return focusOutput end
+    if elixir.Config.IsHealFocus and not elixir.Config.IsHealFocusFallback then return focusOutput end
     
     local spawn = mq.TLO.Spawn(spawnID)
     if not spawn then return "spawn "..spawnID.." not found" end
     if spawn.PctHPs() > elixir.Config.HealPctNormal then return "no one is hurt enough yet, most hurt is "..spawn.Name().." at "..spawn.PctHPs().."%" end
     if spawn.Distance() > 200 then return "heal target "..spawn.Name().." is > 200 distance" end
-
-    -- we are told to force a spell on target
-    if elixir.Config.HealFocusSpellID > 0 then
-        if not elixir.Config.IsHealFocusFallback then return "focus fallback not enabled" end
-    end
 
     local isCasted = false
     local lastCastOutput = "no healing ability found"
@@ -151,16 +148,17 @@ end
 function heal:EmergencyCast(elixir, spawnID)
     local spawn = mq.TLO.Spawn(spawnID)
     if not spawn then return false, "spawn "..spawnID.." not found" end
+    print("emergency situation detected")
     
     local aaName = "Divine Arbitration"
-    if mq.TLO.Me.AltAbilityReady(aaName) then
+    if mq.TLO.Me.AltAbilityReady(aaName)() then
         mq.cmd(string.format("/casting \"%s\"", aaName))
         elixir.LastActionOutput = string.format("heal ai emergency casting %s on %s", aaName, spawn.Name())
         return true, elixir.LastActionOutput
     end
 
     local aaName = "Celestial Regeneration"
-    if mq.TLO.Me.AltAbilityReady(aaName) then
+    if mq.TLO.Me.AltAbilityReady(aaName)() then
         mq.cmd(string.format("/casting \"%s\"", aaName))
         elixir.LastActionOutput = string.format("heal ai emergency casting %s on %s", aaName, spawn.Name())
         return true, elixir.LastActionOutput

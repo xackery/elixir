@@ -55,6 +55,19 @@ elixir = {
 ---@field public IsHealEmergencyPredictive boolean  # If set, Heal AI on emergencies will predict a bad situation
 ---@field public IsHealFocusEmergencyPredictive boolean  # If set, Heal AI on focus emergencies will predict a bad situation
 ---@field public IsHealFocusFallback boolean # If true, Heal AI will fall back to normal healing if focus does not need healing
+---@field public IsGem1Ignored boolean # if true, ignore gem
+---@field public IsGem2Ignored boolean # if true, ignore gem
+---@field public IsGem3Ignored boolean # if true, ignore gem
+---@field public IsGem4Ignored boolean # if true, ignore gem
+---@field public IsGem5Ignored boolean # if true, ignore gem
+---@field public IsGem6Ignored boolean # if true, ignore gem
+---@field public IsGem7Ignored boolean # if true, ignore gem
+---@field public IsGem8Ignored boolean # if true, ignore gem
+---@field public IsGem9Ignored boolean # if true, ignore gem
+---@field public IsGem10Ignored boolean # if true, ignore gem
+---@field public IsGem11Ignored boolean # if true, ignore gem
+---@field public IsGem12Ignored boolean # if true, ignore gem
+---@field public IsGem13Ignored boolean # if true, ignore gem
 ---@field public IsCharmAI boolean # Is Charm AI enabled
 ---@field public IsMeditateAI boolean # Is Meditate AI enabled
 ---@field public IsMeditateDuringCombat boolean # Is Meditate allowed if in combat
@@ -69,19 +82,42 @@ function InitializeConfig()
         IsElixirAI = true,
         IsElixirDisabledOnFocus = false,
         IsHealAI = true,
+        HealPctNormal = 50,
+        HealPctEmergency = 30,
+        IsHealSubtleCasting = false,
+        IsHealFocus = false,
+        IsHealFocusEmergencyAllowed = false,
+        IsHealEmergencyAllowed = false,
+        IsHealEmergencyPredictive = false,
+        IsHealFocusEmergencyPredictive = false,
+        IsHealFocusFallback = false,
+        IsHealRaid = false,
         IsHealPets = true,
-        IsHealRaid = true,
         IsHealXTarget = true,
         IsElixirUIOpen = true,
         IsDebugEnabled = true,
         IsMeditateAI = true,
         IsMeditateDuringCombat = true,
         IsDebugVerboseEnabled = true,
+        IsGem1Ignored = false,
+        IsGem2Ignored = false,
+        IsGem3Ignored = false,
+        IsGem4Ignored = false,
+        IsGem5Ignored = false,
+        IsGem6Ignored = false,
+        IsGem7Ignored = false,
+        IsGem8Ignored = false,
+        IsGem9Ignored = false,
+        IsGem10Ignored = false,
+        IsGem11Ignored = false,
+        IsGem12Ignored = false,
+        IsGem13Ignored = false,
     }
 end
 
 ---@class Gem
 ---@field SpellID number # Which spell ID is memorized to this gem, used for checking on change
+---@field SpellName string # Used for displaying on settings
 ---@field IsIgnored boolean # Ignore this gem for AI
 ---@field Output string # Tooltip message on state of this gem
 ---@field Tag SpellTag # Spell Tag data
@@ -90,10 +126,14 @@ Gem = {}
 function InitializeGem(gemIndex)
     ---@type Gem
     local gem = {}
-    gem.IsIgnored = false
+    gem.IsIgnored = elixir.Config["IsGem"..gemIndex.."Ignored"]
     local spell = mq.TLO.Me.Gem(gemIndex)
-    print(spell)
     gem.Tag = GenerateSpellTag(spell.ID())
+    if spell.Name() then
+        gem.SpellName = spell.Name()
+    else
+        gem.SpellName = "None"
+    end
     gem.Output = ""
     if not spell() or spell.ID() == 0 then
         gem.Output = "no spell memorized"
@@ -130,8 +170,14 @@ function elixir:Reset()
     for i = 1, mq.TLO.Me.NumGems() do
         self.Gems[i] = InitializeGem(i)
     end
+    self.BuffAI.Output = ''
     self.CharmAI.Output = ''
+    self.DebuffAI.Output = ''
+    self.DotAI.Output = ''
     self.HealAI.Output = ''
+    self.MeditateAI.Output = ''
+    self.NukeAI.Output = ''
+    self.TargetAI.Output = ''
 end
 
 function WaitOnCasting() return mq.TLO.Me.SpellReady(1)() end

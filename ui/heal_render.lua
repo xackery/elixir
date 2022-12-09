@@ -20,10 +20,8 @@ local function elixirRender()
     end
     ImGui.SameLine()
     HelpMarker("Enable Heal AI. This enables all healing logic globally")
-
-    if not elixir.Config.IsHealAI then
-        ImGui.BeginDisabled()
-    end
+    
+    ImGui.BeginDisabled(not elixir.Config.IsHealAI)
 
     --- TODO: Healing Normal Pct
 
@@ -65,11 +63,10 @@ local function elixirRender()
         isChanged = true
     end
     ImGui.SameLine()
-    HelpMarker("When enabled, try to use emergency heals to try to save a bad situation.\nNote that this will prioritize AAs such Divine Arbitration, Celestial Regeneration, and quick casting spells that are not mana efficient to try to save the at risk ally.")
-
-    if not elixir.Config.IsHealEmergencyAllowed then
-        ImGui.BeginDisabled()
-    end
+    HelpMarker("When enabled, try to use emergency heals to try to save a bad situation.\nNote that this will prioritize AAs such Divine Arbitration, Celestial Regeneration, and quick casting spells that are not mana efficient to try to save the at risk ally.")    
+    
+    
+    ImGui.BeginDisabled(elixir.Config.IsHealAI and not elixir.Config.IsHealEmergencyAllowed)
 
     --- TODO: Healing Emergency Pct
 
@@ -81,9 +78,7 @@ local function elixirRender()
     ImGui.SameLine()
     HelpMarker("When enabled, Emergency Healing will also be used in cases an ally takes 40% of max health in a short amount of time, predicting a potential emergency situation, but may cause prematurely healing too.")
     
-    if not elixir.Config.IsHealEmergencyAllowed then
-        ImGui.EndDisabled()
-    end
+    ImGui.EndDisabled() -- heal emergency
 
     isNewCheckboxValue, isCheckboxChanged = ImGui.Checkbox("Focus Healing", elixir.Config.IsHealFocus)
     if isCheckboxChanged then
@@ -93,9 +88,7 @@ local function elixirRender()
     ImGui.SameLine()
     HelpMarker("When enabled, healing will focus a single spawn that you wish to prioritize over normal healing logic.\nThis is used for cases such as a primary tank needing priority heals while AEs are going off.")
     
-    if not elixir.Config.IsHealFocus then
-        ImGui.BeginDisabled()
-    end
+    ImGui.BeginDisabled(elixir.Config.IsHealAI and not elixir.Config.IsHealFocus)
 
     --- TODO: Focus Healing Name
     --- TODO: Focus Healing Normal Pct
@@ -109,10 +102,8 @@ local function elixirRender()
     ImGui.SameLine()
     HelpMarker("When enabled, try to use emergency heals to try to save a bad situation.\nNote that this will priotize AAs such Divine Arbitration, Celestial Regeneration, and quick casting spells that are not mana efficient to try to save the at risk focused ally.")
 
-    if not elixir.Config.IsHealFocusEmergencyAllowed then
-        ImGui.BeginDisabled()
-    end
-
+    --ImGui.BeginDisabled(elixir.Config.IsHealAI and elixir.Config.IsHealFocus and not elixir.Config.IsHealFocusEmergencyAllowed)
+    
     --- TODO: Focus Healing Emergency Pct
 
     isNewCheckboxValue, isCheckboxChanged = ImGui.Checkbox("Focus Predict Emergencies", elixir.Config.IsHealFocusEmergencyPredictive)
@@ -123,9 +114,7 @@ local function elixirRender()
     ImGui.SameLine()
     HelpMarker("When enabled, Emergency Healing will also be used in cases an ally takes 40% of max health in a short amount of time, predicting a potential emergency situation, but may cause prematurely healing too.")
 
-    if not elixir.Config.IsHealFocusEmergencyAllowed then
-        ImGui.EndDisabled()
-    end
+    --ImGui.EndDisabled() -- focus emergency heal
 
     isNewCheckboxValue, isCheckboxChanged = ImGui.Checkbox("Focus Fallback Healing", elixir.Config.IsHealFocusFallback)
     if isCheckboxChanged then
@@ -135,13 +124,8 @@ local function elixirRender()
     ImGui.SameLine()
     HelpMarker("When enabled, if focus target does not meet requirement to need a heal, fallback to trying to heal other allies.")
 
-    if not elixir.Config.IsHealFocus then
-        ImGui.EndDisabled()
-    end
-
-    if not elixir.Config.IsHealAI then
-        ImGui.EndDisabled()
-    end
+    ImGui.EndDisabled() -- heal focus
+    ImGui.EndDisabled() -- heal
 
     ImGui.EndGroup()
     return isChanged

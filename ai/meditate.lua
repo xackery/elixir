@@ -30,7 +30,7 @@ function meditate:Check(elixir)
     end
     if elixir.Config.IsElixirDisabledOnFocus and  mq.TLO.EverQuest.Foreground() then return "window focused, ai frozen" end
     if elixir.ZoneCooldown > mq.gettime() then return "on zone cooldown" end
-    if meditate.meditateCooldown > mq.gettime() then return "on meditate cooldown" end
+    if meditate.meditateCooldown and meditate.meditateCooldown > mq.gettime() then return "on meditate cooldown for " .. ((meditate.meditateCooldown-mq.gettime())/1000).." seconds" end
     if mq.TLO.Me.PctMana() >= 99 and mq.TLO.Me.PctHPs() > 99 then return "full mana and health, no need to meditate" end
     if elixir.IsActionCompleted then return "previous action completed" end
     if mq.TLO.Me.Stunned() then
@@ -40,9 +40,9 @@ function meditate:Check(elixir)
     if AreObstructionWindowsVisible() then return "window obstructs sitting" end
     if mq.TLO.Me.Moving() then
         self.MeditateCooldown = mq.gettime() + 6000
-        return "moved recently, waiting 6s to meditate"
+        return "moved recently, waiting 6s to meditate"  .. self.MeditateCooldown
     end
-    if mq.TLO.Me.Mount.ID then return "already on a mount" end
+    if mq.TLO.Me.Mount.ID() then return "already on a mount" end
     if mq.TLO.Me.Casting() then return "currently casting" end
     if mq.TLO.Me.Animation() == 16 then return "feign death" end
     if mq.TLO.Me.Sitting() then return "already sitting" end
@@ -56,11 +56,15 @@ function meditate:Check(elixir)
         -- ok, so we stood up last update, and potentially got hurt, let's see how much
         if mq.TLO.Me.PctHPs() < self.lastSitHPSnapshot then
             self.MeditateCooldown = mq.gettime() + 12000
+            self.lastSitHPSnapshot = mq.TLO.Me.PctHPs()
             return "got hit in combat, waiting 12s to sit"
         end
     end
 
     mq.cmd("/sit")
     elixir.LastActionOutput = "meditate ai sitting"
+    self.lastSitHPSnapshot = mq.TLO.Me.PctHPs()
     return "trying to sit to meditate"
 end
+
+return meditate
