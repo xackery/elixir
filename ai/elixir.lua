@@ -1,7 +1,7 @@
 ---@type Mq
 local mq = require('mq')
 
-local Version = "v0.5.1"
+local Version = "v0.5.2"
 
 ---@class elixir
 ---@field public IsTerminated boolean # Is Elixir about to exit?
@@ -75,6 +75,9 @@ elixir = {
 ---@field public IsGem13Ignored boolean # if true, ignore gem
 ---@field public IsCharmAI boolean # Is Charm AI enabled
 ---@field public IsTargetAI boolean # Is Target AI enabled
+---@field public IsTargetPetAssist boolean # Will Target AI use pet attack
+---@field public TargetMinRange number # Distance to target assist mob
+---@field public IsTargetAutoAttack boolean # Should auto attack be turned on if close to mob
 ---@field public IsBuffAI boolean # Is Buff AI enabled
 ---@field public IsDotAI boolean # Is Dot AI enabled
 ---@field public IsNukeAI boolean # Is Nuke AI enabled
@@ -114,6 +117,9 @@ function InitializeConfig()
         IsMeditateAI = true,
         IsCharmAI = true,
         IsTargetAI = true,
+        IsTargetPetAssist = true,
+        TargetMinRange = 40,
+        IsTargetAutoAttack = false,
         IsBuffAI = true,
         IsDotAI = true,
         IsNukeAI = true,

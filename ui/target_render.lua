@@ -19,22 +19,29 @@ local function targetRender()
         isChanged = true
     end
     ImGui.SameLine()
-    HelpMarker("Enable Heal AI. This handles all heal logic")
+    HelpMarker("Enable Target AI. Works only when in a group and group has a main assist")
 
-    if not elixir.Config.IsHealAI then
-        ImGui.BeginDisabled()
-    end
-    isNewCheckboxValue, isCheckboxChanged = ImGui.Checkbox("\xef\x81\xb0 Disable Elixir AIs When Window Has Focus", elixir.Config.IsElixirDisabledOnFocus)
+    ImGui.BeginDisabled(not elixir.Config.IsTargetAI)
+
+    isNewCheckboxValue, isCheckboxChanged = ImGui.Checkbox("Pet Assist", elixir.Config.IsTargetPetAssist)
     if isCheckboxChanged then
-        elixir.Config.IsElixirDisabledOnFocus = isNewCheckboxValue
+        elixir.Config.IsTargetPetAssist = isNewCheckboxValue
         isChanged = true
     end
     ImGui.SameLine()
-    HelpMarker("When this EQ window is focused, should Elixir continue running?\nHelpful if you like to tab and take over this character.\nThis means AI will only run when this EQ window is in background.")
+    HelpMarker("Use /pet attack on assist target if player owns a pet.")
 
-    if not elixir.Config.IsHealAI then
-        ImGui.EndDisabled()
+    --TODO TargetMinRange
+
+    isNewCheckboxValue, isCheckboxChanged = ImGui.Checkbox("Auto Attack", elixir.Config.IsTargetAutoAttack)
+    if isCheckboxChanged then
+        elixir.IsTargetAutoAttack = isNewCheckboxValue
+        isChanged = true
     end
+    ImGui.SameLine()
+    HelpMarker("If target is less than 20, turn on auto attack")
+
+    ImGui.EndDisabled()
     ImGui.EndGroup()
     return isChanged
 end

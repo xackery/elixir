@@ -1797,6 +1797,7 @@ local function initializeSpellTag(spellID)
         end
     end
 
+    
     if currentSpell.TargetType() == "Group v1" then
         spellTag.IsGroupSpell = true
     end
