@@ -29,13 +29,13 @@ function meditate:Check(elixir)
     if mq.TLO.Me.PctMana() >= 99 and mq.TLO.Me.PctHPs() > 99 then return "full mana and health, no need to meditate" end
     if elixir.IsActionCompleted then return "previous action completed" end
     if mq.TLO.Me.Stunned() then
-        self.MeditateCooldown = mq.gettime() + 6000
+        self.meditateCooldown = mq.gettime() + 6000
         return "stunned recently, waiting 6s to meditate"
     end
     if AreObstructionWindowsVisible() then return "window obstructs sitting" end
     if mq.TLO.Me.Moving() then
-        self.MeditateCooldown = mq.gettime() + 6000
-        return "moved recently, waiting 6s to meditate"  .. self.MeditateCooldown
+        self.meditateCooldown = mq.gettime() + 6000
+        return "moved recently, waiting 6s to meditate"  .. self.meditateCooldown
     end
     if mq.TLO.Me.Mount.ID() then return "already on a mount" end
     if mq.TLO.Me.Casting() then return "currently casting" end
@@ -50,7 +50,7 @@ function meditate:Check(elixir)
     if self.isLastStateSitting then
         -- ok, so we stood up last update, and potentially got hurt, let's see how much
         if mq.TLO.Me.PctHPs() < self.lastSitHPSnapshot then
-            self.MeditateCooldown = mq.gettime() + 12000
+            self.meditateCooldown = mq.gettime() + 12000
             self.lastSitHPSnapshot = mq.TLO.Me.PctHPs()
             return "got hit in combat, waiting 12s to sit"
         end

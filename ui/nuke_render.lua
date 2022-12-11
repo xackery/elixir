@@ -1,6 +1,6 @@
 ---@type Element
 local nukeElement = {}
-nukeElement.Index = 7
+nukeElement.Index = 10
 nukeElement.Icon = '\xef\x83\xa7'
 nukeElement.Title = nukeElement.Icon .. ' Nuke AI'
 

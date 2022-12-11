@@ -1,6 +1,6 @@
 ---@type Element
 local buffElement = {}
-buffElement.Index = 8
+buffElement.Index = 11
 buffElement.Icon = '\xef\x81\xa2'
 buffElement.Title = buffElement.Icon .. ' Buff AI'
 

@@ -14,23 +14,36 @@ local Version = "v0.5.5"
 ---@field public Gems Gem[] # Gem data
 ---@field public Buttons Button[] # Button data
 ---@field public HealAI heal # Heal AI reference
+---@field public HotAI hot # Hot AI reference
+---@field public MoveAI move # movement AI referenc
+---@field public MezAI mez # movement AI reference
+---@field public StunAI stun # stun AI reference
+---@field public AttackAI attack # Attack AI reference
+---@field public ArcheryAI archery # Archery AI reference
 ---@field public CharmAI charm # Charm AI reference
 ---@field public MaxGemCount number # Maximum Number of Gems available, this is updated each pulse
 ---@field public ZoneCooldown number # timer when zone events occur
 ---@field public IsActionCompleted boolean # Has an action completed during this update
 ---@field public LastOverlayWindowHeight number # last size of overlay window
+---@field public IsTankInParty boolean # Is there a tank class in the group or raid, used for subtle checks
 ---@field private lastZoneID number # Last Zone ID snapshotted on update
 elixir = {
     LastActionOutput = '',
     Gems = {},
     Buttons = {},
+    ArcheryAI = require('ai/archery'),
+    AttackAI = require('ai/attack'),
     BuffAI = require('ai/buff'),
     CharmAI = require('ai/charm'),
     DebuffAI = require('ai/debuff'),
     DotAI = require('ai/dot'),
     HealAI = require('ai/heal'),
+    HotAI = require('ai/hot'),
     MeditateAI = require('ai/meditate'),
+    MezAI = require('ai/mez'),
+    MoveAI = require('ai/move'),
     NukeAI = require('ai/nuke'),
+    StunAI = require('ai/stun'),
     TargetAI = require('ai/target'),
     ZoneCooldown = 0,
     IsActionCompleted = false,
@@ -38,11 +51,16 @@ elixir = {
     SettingsTabIndex = 10,
     LastOverlayWindowHeight = 0
 }
+---@alias MoveType "nav"|"advpath"|"moveutils"|"dynamic"
 
 ---@class Config
 ---@field public IsElixirAI boolean # is elixir running
 ---@field public IsElixirOverlayUI boolean # is elixir overlay enabled
 ---@field public IsElixirDisabledOnFocus boolean # should elixir not run if focused
+---@field public IsElixirUIOpen boolean # Is the Elixir UI open
+---@field public IsDebugEnabled boolean # Is debugging info enabled
+---@field public IsDebugVerboseEnabled boolean # Is echoing out verbose debugging enabled
+---Heal AI
 ---@field public IsHealAI boolean # Is Heal AI enabled
 ---@field public IsHealSubtleCasting boolean # Is Heal AI supposed to cast when high aggro
 ---@field public IsHealPets boolean # Is Pets Healing enabled
@@ -60,6 +78,19 @@ elixir = {
 ---@field public IsHealEmergencyPredictive boolean  # If set, Heal AI on emergencies will predict a bad situation
 ---@field public IsHealFocusEmergencyPredictive boolean  # If set, Heal AI on focus emergencies will predict a bad situation
 ---@field public IsHealFocusFallback boolean # If true, Heal AI will fall back to normal healing if focus does not need healing
+---Hot AI
+---@field public IsHotAI boolean # Is Hot AI enabled
+---@field public IsHotRaid boolean # Is Raid heal over times enabled
+---@field public IsHotXTarget boolean # Is XTarget heal over times enabled
+---@field public HotPctNormal number # If set, Hot AI will try heal over times a target when at pct with normal hot
+---@field public HotFocusName string # If set, Hot AI will focus on provided spawn name
+---@field public HotFocusSpellID number # If set, Hot AI will focus on provided spell ID on focus ID
+---@field public HotFocusPctNormal number # If set, Hot AI will focus on heal over times a target with pct normal hot
+---Stun AI
+---@field public IsStunAI boolean # Is Stun AI enabled
+---Mez AI
+---@field public IsMezAI boolean # Is Mez AI enabled
+---Gem Ignore
 ---@field public IsGem1Ignored boolean # if true, ignore gem
 ---@field public IsGem2Ignored boolean # if true, ignore gem
 ---@field public IsGem3Ignored boolean # if true, ignore gem
@@ -73,29 +104,55 @@ elixir = {
 ---@field public IsGem11Ignored boolean # if true, ignore gem
 ---@field public IsGem12Ignored boolean # if true, ignore gem
 ---@field public IsGem13Ignored boolean # if true, ignore gem
+---Charm AI
 ---@field public IsCharmAI boolean # Is Charm AI enabled
+---Archery AI
+---@field public IsArcheryAI boolean # Is Archery AI enabled
+---@field public IsArcherySubtle boolean # Will archery turn off when high hate
+---Attack AI
+---@field public IsAttackAI boolean # Is Attack AI enabled
+---@field public IsAttackSubtle boolean # Will attack turn off when high hate
+---Move AI
+---@field public IsMoveAI boolean # Is Move AI enabled
+---@field public MoveType MoveType # option to move
+---@field public IsMoveToMeleeInCombat boolean # Is Move AI supposed to stay in melee
+---@field public IsMoveToArcheryInCombat boolean # Is Move AI supposed to stay in ranged
+---@field public IsMoveToStrategyPointInCombat boolean # Is Move to Strategy Point enabled
+---@field public MoveToStrategyPointX number # Move to Strategy Point x
+---@field public MoveToStrategyPointY number # Move to Strategy Point y
+---@field public MoveToStrategyPointZ number # Move to Strategy Point z
+---@field public IsMoveToTank boolean # Is Move AI supposed to stay near the tank
+---@field public MoveToTankMaxDistance number # Max distance before moving to tank
+---@field public IsMoveToCamp boolean # Is Move AI supposed to stay in a camp spot
+---@field public MoveToCampRadius number # how far before triggering camp radius leash
+---@field public IsMoveToCampDuringCombat boolean # Should moving to camp be triggered while fighting?
+---@field public MoveToCampX number # Camp X
+---@field public MoveToCampY number # Camp Y
+---@field public MoveToCampZ number # Camp Z
+---Target AI
 ---@field public IsTargetAI boolean # Is Target AI enabled
 ---@field public IsTargetPetAssist boolean # Will Target AI use pet attack
 ---@field public TargetMinRange number # Distance to target assist mob
----@field public IsTargetAutoAttack boolean # Should auto attack be turned on if close to mob
+---Buff AI
 ---@field public IsBuffAI boolean # Is Buff AI enabled
 ---@field public BuffPctNormal number # % to buff normal
 ---@field public IsBuffSubtleCasting boolean # Is buffing a subtle casting feature
+---Dot AI
 ---@field public IsDotAI boolean # Is Dot AI enabled
 ---@field public DotPctNormal number # % to dot normal
 ---@field public IsDotSubtleCasting boolean # Is dotting a subtle casting feature
+---Nuke AI
 ---@field public IsNukeAI boolean # Is Nuke AI enabled
 ---@field public NukePctNormal number # % to nuke normal
 ---@field public IsNukeSubtleCasting boolean # Is Nuking a subtle casting feature
+---Debuff AI
 ---@field public IsDebuffAI boolean # Is Debuff AI enabled
 ---@field public DebuffPctNormal number # % to debuff normal
 ---@field public IsDebuffSubtleCasting boolean # Is debuffing a subtle casting feature
+---Meditate AI
 ---@field public IsMeditateAI boolean # Is Meditate AI enabled
 ---@field public IsMeditateDuringCombat boolean # Is Meditate allowed if in combat
 ---@field public IsMeditateSubtle boolean # Is Meditate AI supposed to sit when high aggro
----@field public IsElixirUIOpen boolean # Is the Elixir UI open
----@field public IsDebugEnabled boolean # Is debugging info enabled
----@field public IsDebugVerboseEnabled boolean # Is echoing out verbose debugging enabled
 elixir.Config = {
     IsElixirAI = true,
     IsEQInForeground = true,
@@ -117,14 +174,32 @@ elixir.Config = {
     IsHealRaid = false,
     IsHealPets = true,
     IsHealXTarget = true,
+    IsHotAI = true,
+    IsStunAI = true,
     IsElixirUIOpen = true,
     IsDebugEnabled = true,
     IsMeditateAI = true,
+    IsArcheryAI = false,
+    IsArcherySubtle = false,
+    IsAttackAI = false,
+    IsAttackSubtle = false,
+    IsMezAI = false,
+    IsMoveAI = false,
+    IsMoveToMeleeInCombat = true,
+    IsMoveToArcheryInCombat = false,
+    IsMoveToStrategyPointInCombat = false,
+    MoveToStrategyPointX = 0,
+    MoveToStrategyPointY = 0,
+    MoveToStrategyPointZ = 0,
+    IsMoveToTank = false,
+    IsMoveToCamp = false,
+    MoveToCampX = 0,
+    MoveToCampY = 0,
+    MoveToCampZ = 0,
     IsCharmAI = true,
     IsTargetAI = true,
     IsTargetPetAssist = true,
     TargetMinRange = 40,
-    IsTargetAutoAttack = false,
     IsBuffAI = false,
     BuffPctNormal = 95,
     IsBuffSubtleCasting = true,
@@ -282,6 +357,7 @@ function elixir:Reset()
     if self.MaxGemCount ~= mq.TLO.Me.NumGems() then
         self.MaxGemCount = mq.TLO.Me.NumGems()
     end
+    self.IsTankInParty = IsTankInParty()
     for i = 1, mq.TLO.Me.NumGems() do
         self.Gems[i] = InitializeGem(i)
     end
@@ -306,6 +382,7 @@ function elixir:Update()
 
     self.HealAI.Output = self.HealAI:Cast(elixir)
     self.CharmAI.Output = self.CharmAI:Cast(elixir)
+    self.HotAI.Output = self.HotAI:Cast(elixir)
     self.TargetAI.Output = self.TargetAI:Check(elixir)
     self.DebuffAI.Output = self.DebuffAI:Cast(elixir)
     self.DotAI.Output = self.DotAI:Cast(elixir)

@@ -2,11 +2,14 @@
 local mq = require('mq')
 
 ---Attempts to find the most hurt ally
----@returns spawnID number # spawn ID of heal target
-function MostHurtAlly()
+---@param threshold number # % threshold to be considered hurt
+---@returns spawnCount number, spawnID number # spawn ID of heal target
+function MostHurtAlly(threshold)
     local spawnPctHPs = 101
     local finalSpawnID = 0
+    local spawnCount  = 0
 
+    if mq.TLO.Me.PctHPs() < threshold then spawnCount = spawnCount + 1 end
     if mq.TLO.Me.PctHPs() < spawnPctHPs then
         spawnPctHPs = mq.TLO.Me.PctHPs()
         finalSpawnID = mq.TLO.Me.ID()
@@ -24,14 +27,17 @@ function MostHurtAlly()
                 pSpawn() and
                 pSpawn.Pet() and
                 pSpawn.Pet.ID() > 0 and
-                pSpawn.Distance() < 200 and
-                pSpawn.PctHPs() < spawnPctHPs then
-                    spawnPctHPs = pSpawn.Pet.PctHPs()
-                    finalSpawnID = pSpawn.Pet.ID()
-                end
-                if pSpawn() and pSpawn.PctHPs() < spawnPctHPs then
-                    spawnPctHPs = pSpawn.PctHPs()
-                    finalSpawnID = pSpawn.ID()
+                pSpawn.Distance() < 200 then
+                    if pSpawn.Pet.PctHPs() < threshold then spawnCount = spawnCount + 1 end
+                    if pSpawn.Pet.PctHPs() < spawnPctHPs then
+                        spawnPctHPs = pSpawn.Pet.PctHPs()
+                        finalSpawnID = pSpawn.Pet.ID()
+                    end
+                    if pSpawn() and pSpawn.PctHPs() < threshold then spawnCount = spawnCount + 1 end
+                    if pSpawn() and pSpawn.PctHPs() < spawnPctHPs then
+                        spawnPctHPs = pSpawn.PctHPs()
+                        finalSpawnID = pSpawn.ID()
+                    end
                 end
             end
         end
@@ -47,14 +53,17 @@ function MostHurtAlly()
                 local pSpawn = pR.Spawn
                 if elixir.Config.IsHealPets and
                 pSpawn.Pet() and
-                pSpawn.Pet.Distance() < 200 and
-                pSpawn.Pet.PctHPs() < spawnPctHPs then
-                    spawnPctHPs = pSpawn.Pet.PctHPs()
-                    finalSpawnID = pSpawn.Pet.ID()
-                end
-                if pSpawn.PctHPs() < spawnPctHPs then
-                    spawnPctHPs = pSpawn.PctHPs()
-                    finalSpawnID = pSpawn.ID()
+                pSpawn.Pet.Distance() < 200 then
+                    if pSpawn.Pet.PctHPs() < threshold then spawnCount = spawnCount + 1 end
+                    if pSpawn.Pet.PctHPs() < spawnPctHPs then
+                        spawnPctHPs = pSpawn.Pet.PctHPs()
+                        finalSpawnID = pSpawn.Pet.ID()
+                    end
+                    if pSpawn.PctHPs() < threshold then spawnCount = spawnCount + 1 end
+                    if pSpawn.PctHPs() < spawnPctHPs then
+                        spawnPctHPs = pSpawn.PctHPs()
+                        finalSpawnID = pSpawn.ID()
+                    end
                 end
             end
         end
@@ -69,12 +78,14 @@ function MostHurtAlly()
             xt.TargetType() == "Raid Assist 2" or
             xt.TargetType() == "Raid Assist 3") and
             xt.Type() ~= "CORPSE" and
-            xt.Distance() < 200 and
-            xt.PctHPs() > spawnPctHPs then
-                spawnPctHPs = xt.PctHPs()
-                finalSpawnID = xt.ID()
+            xt.Distance() < 200 then
+                if xt.PctHPs() <= threshold then spawnCount = spawnCount+1 end
+                if xt.PctHPs() < spawnPctHPs then
+                    spawnPctHPs = xt.PctHPs()
+                    finalSpawnID = xt.ID()
+                end
             end
         end
     end
-    return finalSpawnID
+    return spawnCount, finalSpawnID
 end

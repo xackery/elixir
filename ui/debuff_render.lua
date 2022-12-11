@@ -1,6 +1,6 @@
 ---@type Element
 local debuffElement = {}
-debuffElement.Index = 5
+debuffElement.Index = 8
 debuffElement.Icon = '\xef\x83\xbc'
 debuffElement.Title = debuffElement.Icon .. ' Debuff AI'
 

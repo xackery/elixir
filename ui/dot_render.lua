@@ -1,6 +1,6 @@
 ---@type Element
 local dotElement = {}
-dotElement.Index = 6
+dotElement.Index = 9
 dotElement.Icon = '\xef\x84\xae'
 dotElement.Title = dotElement.Icon .. ' Dot AI'
 

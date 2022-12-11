@@ -1,6 +1,6 @@
 ---@type Element
 local charmElement = {}
-charmElement.Index = 3
+charmElement.Index = 4
 charmElement.Icon = '\xef\x81\xa9'
 charmElement.Title = charmElement.Icon .. ' Charm AI'
 

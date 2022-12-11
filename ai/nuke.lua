@@ -61,7 +61,7 @@ function nuke:CastGem(elixir, targetSpawnID, gemIndex)
     if spell.Mana() > mq.TLO.Me.CurrentMana() then return false, "not enough mana (" .. mq.TLO.Me.CurrentMana() .. "/" .. spell.Mana() .. ")" end
     if mq.TLO.Spawn(targetSpawnID).Distance() > spell.Range() then return false, "target too far away" end
 
-    self.NukeCooldown = mq.gettime() + 1000
+    self.nukeCooldown = mq.gettime() + 1000
     elixir.LastActionOutput = string.format("nuke ai casting %s on %s", spell.Name(), mq.TLO.Spawn(targetSpawnID).Name())
     elixir.isActionCompleted = true
     mq.cmd(string.format("/casting \"%s\" -targetid|%d -maxtries|2", spell.Name(), targetSpawnID))

@@ -77,7 +77,7 @@ function debuff:CastGem(elixir, targetSpawnID, gemIndex)
         --TODO: immune to snare check
     end
 
-    self.DebuffCooldown = mq.gettime() + 1000
+    self.debuffCooldown = mq.gettime() + 1000
     elixir.LastActionOutput = string.format("debuff ai casting %s on %s", spell.Name(), mq.TLO.Spawn(targetSpawnID).Name())
     elixir.isActionCompleted = true
     mq.cmd(string.format("/casting \"%s\" -targetid|%d -maxtries|2", spell.Name(), targetSpawnID))

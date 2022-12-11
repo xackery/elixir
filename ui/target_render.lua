@@ -1,6 +1,6 @@
 ---@type Element
 local targetElement = {}
-targetElement.Index = 4
+targetElement.Index = 7
 targetElement.Icon = '\xef\x85\x80'
 targetElement.Title = targetElement.Icon .. ' Target AI'
 
@@ -32,14 +32,6 @@ local function targetRender()
     HelpMarker("Use /pet attack on assist target if player owns a pet.")
 
     --TODO TargetMinRange
-
-    isNewCheckboxValue, isCheckboxChanged = ImGui.Checkbox("Auto Attack", elixir.Config.IsTargetAutoAttack)
-    if isCheckboxChanged then
-        elixir.IsTargetAutoAttack = isNewCheckboxValue
-        isChanged = true
-    end
-    ImGui.SameLine()
-    HelpMarker("If target is less than 20, turn on auto attack")
 
     ImGui.EndDisabled()
     ImGui.EndGroup()

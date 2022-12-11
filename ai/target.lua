@@ -3,6 +3,7 @@ local mq = require('mq')
 
 ---@class target
 ---@field public Output string # AI Debug String
+---@field public IsTargetAttackable boolean # Is the current target deemed attackable?
 ---@field private targetCooldown number # cooldown timer to use target
 target = {
     Output = '',
@@ -13,7 +14,12 @@ target = {
 ---@param elixir elixir
 function target:Check(elixir)
     if not elixir.Config.IsElixirAI then return "elixir ai not running" end
-    if not elixir.Config.IsTargetAI then return "target ai not running" end
+
+    if not elixir.Config.IsTargetAI then
+        self.IsTargetAttackable = true
+        return "target ai not running"
+    end
+    self.IsTargetAttackable = false
     if elixir.Config.IsElixirDisabledOnFocus and elixir.IsEQInForeground then return "window focused, ai frozen" end
     if elixir.ZoneCooldown > mq.gettime() then return "on zone cooldown" end
     if self.targetCooldown and self.targetCooldown > mq.gettime() then return "on target cooldown" end
@@ -36,6 +42,7 @@ function target:Check(elixir)
 
     
     if mq.TLO.Target() and mq.TLO.Target.ID() == spawnID then
+        self.IsTargetAttackable = true
         if mq.TLO.Pet() and 
         mq.TLO.Pet.ID() > 0 and
         (not mq.TLO.Pet.Target() or mq.TLO.Pet.Target.ID() ~= spawnID) and
@@ -45,14 +52,7 @@ function target:Check(elixir)
             self.targetCooldown = mq.gettime() + 1000
             return "setting pet to attack "..spawn.Name()
         end
-
-        if not mq.TLO.Me.Combat() and
-        elixir.Config.IsTargetAutoAttack and
-        spawn.Distance() < 20 then
-            mq.cmd("/attack")
-            self.targetCooldown = mq.gettime() + 1000
-            return "turning on attack against "..spawn.Name()
-        end
+        
         return "assisting ".. spawn.Name()
     end
     self.targetCooldown = mq.gettime() + 6000

@@ -6,17 +6,23 @@ require 'ImGui'
 
 local settingsElement = require('ui/settings_render')
 
-local elixirElement = require('ui/elixir_render')
-local ignoreGemsElement = require('ui/ignore_gems_render')
-local healElement = require('ui/heal_render')
-local charmElement = require('ui/charm_render')
-local meditateElement = require('ui/meditate_render')
-local targetElement = require('ui/target_render')
+local archeryElement = require('ui/archery_render')
+local attackElement = require('ui/attack_render')
 local buffElement = require('ui/buff_render')
-local nukeElement = require('ui/nuke_render')
-local dotElement = require('ui/dot_render')
+local charmElement = require('ui/charm_render')
 local debuffElement = require('ui/debuff_render')
 local debugElement = require('ui/debug_render')
+local dotElement = require('ui/dot_render')
+local elixirElement = require('ui/elixir_render')
+local healElement = require('ui/heal_render')
+local hotElement = require('ui/hot_render')
+local ignoreGemsElement = require('ui/ignore_gems_render')
+local meditateElement = require('ui/meditate_render')
+local mezElement = require('ui/mez_render')
+local moveElement = require('ui/move_render')
+local nukeElement = require('ui/nuke_render')
+local stunElement = require('ui/stun_render')
+local targetElement = require('ui/target_render')
 
 ---@class Element
 ---@field Index number # index on selection for element in settings page
@@ -25,17 +31,23 @@ local debugElement = require('ui/debug_render')
 ---@field Render function # renderer function for element
 ---@field IsTitleSeparatorAfter boolean # add a seperator after section title
 local elements = {}
-elements[elixirElement.Index] = elixirElement
-elements[ignoreGemsElement.Index] = ignoreGemsElement
-elements[healElement.Index] = healElement
-elements[charmElement.Index] = charmElement
-elements[targetElement.Index] = targetElement
-elements[debuffElement.Index] = debuffElement
-elements[dotElement.Index] = dotElement
-elements[nukeElement.Index] = nukeElement
+elements[archeryElement.Index] = archeryElement
+elements[attackElement.Index] = attackElement
 elements[buffElement.Index] = buffElement
-elements[meditateElement.Index] = meditateElement
+elements[charmElement.Index] = charmElement
+elements[debuffElement.Index] = debuffElement
 elements[debugElement.Index] = debugElement
+elements[dotElement.Index] = dotElement
+elements[elixirElement.Index] = elixirElement
+elements[healElement.Index] = healElement
+elements[hotElement.Index] = hotElement
+elements[ignoreGemsElement.Index] = ignoreGemsElement
+elements[meditateElement.Index] = meditateElement
+elements[mezElement.Index] = mezElement
+elements[moveElement.Index] = moveElement
+elements[nukeElement.Index] = nukeElement
+elements[stunElement.Index] = stunElement
+elements[targetElement.Index] = targetElement
 
 function SettingsRender()
     if not elixir.Config.IsElixirUIOpen then return end
@@ -171,6 +183,21 @@ function OverlayRender(isOpen)
             lastX, lastY = ImGui.GetCursorPos()
         end
 
+        if elixir.Config.IsStunAI then
+            windowHeight = windowHeight + 20
+            if ImGui.InvisibleButton("stun", ICON_WIDTH, 20) then
+                elixir.SettingsTabIndex = stunElement.Index
+                if not elixir.Config.IsElixirUIOpen then elixir.Config.IsElixirUIOpen = true end
+            end
+            ImGui.SetCursorPos(lastX, lastY)
+            ImGui.NewLine()
+            ImGui.SameLine(4)
+            enabledIconStyle()
+            ImGui.Text(stunElement.Icon)
+            ImGui.PopStyleColor(1)
+            lastX, lastY = ImGui.GetCursorPos()
+        end
+
         if elixir.Config.IsCharmAI then
             windowHeight = windowHeight + 20
             if ImGui.InvisibleButton("charm", ICON_WIDTH, 20) then
@@ -182,6 +209,36 @@ function OverlayRender(isOpen)
             ImGui.SameLine(4)
             enabledIconStyle()
             ImGui.Text(charmElement.Icon)
+            ImGui.PopStyleColor(1)
+            lastX, lastY = ImGui.GetCursorPos()
+        end
+
+        if elixir.Config.IsHotAI then
+            windowHeight = windowHeight + 20
+            if ImGui.InvisibleButton("hot", ICON_WIDTH, 20) then
+                elixir.SettingsTabIndex = hotElement.Index
+                if not elixir.Config.IsElixirUIOpen then elixir.Config.IsElixirUIOpen = true end
+            end
+            ImGui.SetCursorPos(lastX, lastY)
+            ImGui.NewLine()
+            ImGui.SameLine(4)
+            enabledIconStyle()
+            ImGui.Text(hotElement.Icon)
+            ImGui.PopStyleColor(1)
+            lastX, lastY = ImGui.GetCursorPos()
+        end
+
+        if elixir.Config.IsMezAI then
+            windowHeight = windowHeight + 20
+            if ImGui.InvisibleButton("mez", ICON_WIDTH, 20) then
+                elixir.SettingsTabIndex = mezElement.Index
+                if not elixir.Config.IsElixirUIOpen then elixir.Config.IsElixirUIOpen = true end
+            end
+            ImGui.SetCursorPos(lastX, lastY)
+            ImGui.NewLine()
+            ImGui.SameLine(4)
+            enabledIconStyle()
+            ImGui.Text(mezElement.Icon)
             ImGui.PopStyleColor(1)
             lastX, lastY = ImGui.GetCursorPos()
         end
@@ -200,6 +257,7 @@ function OverlayRender(isOpen)
             ImGui.PopStyleColor(1)
             lastX, lastY = ImGui.GetCursorPos()
         end
+
 
         if elixir.Config.IsDebuffAI then
             windowHeight = windowHeight + 20
@@ -261,6 +319,51 @@ function OverlayRender(isOpen)
             lastX, lastY = ImGui.GetCursorPos()
         end
 
+        if elixir.Config.IsMoveAI then
+            windowHeight = windowHeight + 20
+            if ImGui.InvisibleButton("move", ICON_WIDTH, 20) then
+                elixir.SettingsTabIndex = moveElement.Index
+                if not elixir.Config.IsElixirUIOpen then elixir.Config.IsElixirUIOpen = true end
+            end
+            ImGui.SetCursorPos(lastX, lastY)
+            ImGui.NewLine()
+            ImGui.SameLine(4)
+            enabledIconStyle()
+            ImGui.Text(moveElement.Icon)
+            ImGui.PopStyleColor(1)
+            lastX, lastY = ImGui.GetCursorPos()
+        end
+
+        if elixir.Config.IsArcheryAI then
+            windowHeight = windowHeight + 20
+            if ImGui.InvisibleButton("archery", ICON_WIDTH, 20) then
+                elixir.SettingsTabIndex = archeryElement.Index
+                if not elixir.Config.IsElixirUIOpen then elixir.Config.IsElixirUIOpen = true end
+            end
+            ImGui.SetCursorPos(lastX, lastY)
+            ImGui.NewLine()
+            ImGui.SameLine(4)
+            enabledIconStyle()
+            ImGui.Text(archeryElement.Icon)
+            ImGui.PopStyleColor(1)
+            lastX, lastY = ImGui.GetCursorPos()
+        end
+
+        if elixir.Config.IsAttackAI then
+            windowHeight = windowHeight + 20
+            if ImGui.InvisibleButton("attack", ICON_WIDTH, 20) then
+                elixir.SettingsTabIndex = attackElement.Index
+                if not elixir.Config.IsElixirUIOpen then elixir.Config.IsElixirUIOpen = true end
+            end
+            ImGui.SetCursorPos(lastX, lastY)
+            ImGui.NewLine()
+            ImGui.SameLine(4)
+            enabledIconStyle()
+            ImGui.Text(attackElement.Icon)
+            ImGui.PopStyleColor(1)
+            lastX, lastY = ImGui.GetCursorPos()
+        end
+
         if elixir.Config.IsMeditateAI then
             windowHeight = windowHeight + 20
             if ImGui.InvisibleButton("meditate", ICON_WIDTH, 20) then
@@ -287,6 +390,7 @@ function OverlayRender(isOpen)
             elixir.LastOverlayWindowHeight = windowHeight
             print("height changed to " .. windowHeight)
         end
+
         if ImGui.BeginPopupContextWindow() then
             if ImGui.MenuItem("Elixir Settings") then
                 elixir.SettingsTabIndex = 0

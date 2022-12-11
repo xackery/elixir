@@ -15,7 +15,7 @@ local mq = require('mq')
 ---@field IsSnare boolean # Is spell a snare
 ---@field IsSow boolean # Is spell a sow
 ---@field IsTaunt boolean # Is spell a taunt
----@field IsSingleTargetSpell boolean # Is spell a singletargetspell
+---@field IsPBAE boolean # Is spell a ae
 ---@field IsPetSummon boolean # Is spell a petsummon
 ---@field IsTransport boolean # Is spell a transport
 ---@field IsGroupSpell boolean # Is spell a groupspell
@@ -151,39 +151,29 @@ local function initializeSpellTag(spellID)
         if attr == 16 then -- SPA_NPC_FRENZY
             spellTag.IsLull = true
             spellTag.IsDebuff = true
-            spellTag.IsDetrimental = true
         end
 
         if attr == 17 then -- SPA_NPC_AWARENESS
             spellTag.IsLull = true
             spellTag.IsDebuff = true
-            spellTag.IsDetrimental = true
         end
 
         if attr == 18 then -- SPA_NPC_AGGRO
             spellTag.IsLull = true
             spellTag.IsDebuff = true
-            spellTag.IsDetrimental = true
         end
 
         if attr == 21 then -- SPA_STUN
             spellTag.StunDuration = base2
-            if currentSpell.TargetType() == "PB AE" or currentSpell.TargetType() == "AE PC v1" then
-                spellTag.IsSingleTargetSpell = true
-            end
-            spellTag.IsDebuff = true
-            spellTag.IsDetrimental = true
         end
 
         if attr == 22 then -- SPA_CHARM
             spellTag.IsCharm = true
             spellTag.IsDebuff = true
-            spellTag.IsDetrimental = true
         end
 
         if attr == 23 then -- SPA_FEAR
             spellTag.IsDebuff = true
-            spellTag.IsDetrimental = true
         end
 
         if attr == 26 then -- SPA_GATE
@@ -193,13 +183,11 @@ local function initializeSpellTag(spellID)
         if attr == 30 then -- SPA_NPC_AGGRO_RADIUS
             spellTag.IsLull = true
             spellTag.IsDebuff = true
-            spellTag.IsDetrimental = true
         end
 
         if attr == 31 then -- SPA_MEZ
             spellTag.IsMez = true
             spellTag.IsDebuff = true
-            spellTag.IsDetrimental = true
         end
 
         if attr == 32 then -- SPA_CREATE_ITEM
@@ -326,11 +314,7 @@ local function initializeSpellTag(spellID)
 
         if attr == 64 then -- SPA_SPIN_STUN
             spellTag.StunDuration = base2
-            if currentSpell.TargetType() == "PB AE" or currentSpell.TargetType() == "AE PC v1" then
-                spellTag.IsSingleTargetSpell = true
-            end
             spellTag.IsDebuff = true
-            spellTag.IsDetrimental = true
         end
 
         if attr == 65 then -- SPA_INFRAVISION
@@ -406,7 +390,6 @@ local function initializeSpellTag(spellID)
         if attr == 86 then -- SPA_NPC_HELP_RADIUS
             spellTag.IsLull = true
             spellTag.IsDebuff = true
-            spellTag.IsDetrimental = true
         end
 
         if attr == 87 then -- SPA_MAGNIFICATION
@@ -476,7 +459,6 @@ local function initializeSpellTag(spellID)
 
         if attr == 105 then -- SPA_NPC_ANTI_GATE
             spellTag.IsDebuff = true
-            spellTag.IsDetrimental = true
         end
 
         if attr == 106 then -- SPA_BEASTLORD_PET
@@ -1806,7 +1788,14 @@ local function initializeSpellTag(spellID)
         end
     end
 
-    
+    if currentSpell.TargetType() == "PB AE" then
+        spellTag.IsPBAE = true
+    end
+
+    if currentSpell.TargetType() == "AE PC v1" then
+        spellTag.IsPBAE = true
+    end
+
     if currentSpell.TargetType() == "Group v1" then
         spellTag.IsGroupSpell = true
     end

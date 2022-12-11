@@ -103,7 +103,7 @@ function charm:CastGem(elixir, targetSpawnID, gemIndex)
         --TODO: immune to snare check
     end
 
-    self.CharmCooldown = mq.gettime() + 1000
+    self.charmCooldown = mq.gettime() + 1000
     elixir.LastActionOutput = string.format("charm ai casting %s on %s", spell.Name(), mq.TLO.Spawn(targetSpawnID).Name())
     elixir.isActionCompleted = true
     mq.cmd(string.format("/casting \"%s\" -targetid|%d -maxtries|2", spell.Name(), targetSpawnID))
