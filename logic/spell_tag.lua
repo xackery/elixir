@@ -30,7 +30,7 @@ local mq = require('mq')
 ---@field IsHaste boolean # Is spell a haste
 ---@field IsSlow boolean # Is spell a slow
 ---@field IsFeignDeath boolean # Is spell one that triggers FD
----@field IsDeathPact # Is spell a divine intervention line spell
+---@field IsDeathPact boolean # Is spell a divine intervention line spell
 ---@field StunDuration number
 ---@field DamageAmount number
 ---@field HealAmount number

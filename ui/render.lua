@@ -127,9 +127,7 @@ function OverlayRender(isOpen)
         ImGui.SetCursorPos(1,6)
         if ImGui.InvisibleButton("settings", ICON_WIDTH, ICON_HEIGHT-6) then
             elixir.SettingsTabIndex = 0
-            if not elixir.Config.IsElixirUIOpen then
-                elixir.Config.IsElixirUIOpen = true
-            end
+            if not elixir.Config.IsElixirUIOpen then elixir.Config.IsElixirUIOpen = true end
         end
 
         
@@ -151,78 +149,125 @@ function OverlayRender(isOpen)
         end
        
         local windowHeight = 46
-
+        local lastX, lastY = ImGui.GetCursorPos()
         if elixir.Config.IsHealAI then
             windowHeight = windowHeight + 20
+            if ImGui.InvisibleButton("heal", ICON_WIDTH, 20) then
+                elixir.SettingsTabIndex = healElement.Index
+                if not elixir.Config.IsElixirUIOpen then elixir.Config.IsElixirUIOpen = true end
+            end
+            ImGui.SetCursorPos(lastX, lastY)
             ImGui.NewLine()
             ImGui.SameLine(4)
             enabledIconStyle()
-            ImGui.Text(healElement.Icon) -- heal
+            ImGui.Text(healElement.Icon)
             ImGui.PopStyleColor(1)
             if elixir.Config.IsHealFocus then
                 ImGui.SameLine(22)
                 enabledIconStyle()
-                ImGui.Text(healElement.FocusIcon) -- focus heal
+                ImGui.Text(healElement.FocusIcon)
                 ImGui.PopStyleColor(1)
             end
+            lastX, lastY = ImGui.GetCursorPos()
         end
 
         if elixir.Config.IsCharmAI then
             windowHeight = windowHeight + 20
+            if ImGui.InvisibleButton("charm", ICON_WIDTH, 20) then
+                elixir.SettingsTabIndex = charmElement.Index
+                if not elixir.Config.IsElixirUIOpen then elixir.Config.IsElixirUIOpen = true end
+            end
+            ImGui.SetCursorPos(lastX, lastY)
             ImGui.NewLine()
             ImGui.SameLine(4)
             enabledIconStyle()
-            ImGui.Text(charmElement.Icon) -- heal
+            ImGui.Text(charmElement.Icon)
             ImGui.PopStyleColor(1)
+            lastX, lastY = ImGui.GetCursorPos()
         end
 
         if elixir.Config.IsTargetAI then
             windowHeight = windowHeight + 20
+            if ImGui.InvisibleButton("target", ICON_WIDTH, 20) then
+                elixir.SettingsTabIndex = targetElement.Index
+                if not elixir.Config.IsElixirUIOpen then elixir.Config.IsElixirUIOpen = true end
+            end
+            ImGui.SetCursorPos(lastX, lastY)
             ImGui.NewLine()
             ImGui.SameLine(4)
             enabledIconStyle()
-            ImGui.Text(targetElement.Icon) -- heal
+            ImGui.Text(targetElement.Icon)
             ImGui.PopStyleColor(1)
+            lastX, lastY = ImGui.GetCursorPos()
         end
 
         if elixir.Config.IsDebuffAI then
             windowHeight = windowHeight + 20
+            if ImGui.InvisibleButton("debuff", ICON_WIDTH, 20) then
+                elixir.SettingsTabIndex = debuffElement.Index
+                if not elixir.Config.IsElixirUIOpen then elixir.Config.IsElixirUIOpen = true end
+            end
+            ImGui.SetCursorPos(lastX, lastY)
             ImGui.NewLine()
             ImGui.SameLine(4)
             enabledIconStyle()
-            ImGui.Text(debuffElement.Icon) -- heal
+            ImGui.Text(debuffElement.Icon)
             ImGui.PopStyleColor(1)
+            lastX, lastY = ImGui.GetCursorPos()
         end
 
         if elixir.Config.IsDotAI then
             windowHeight = windowHeight + 20
+            if ImGui.InvisibleButton("dot", ICON_WIDTH, 20) then
+                elixir.SettingsTabIndex = dotElement.Index
+                if not elixir.Config.IsElixirUIOpen then elixir.Config.IsElixirUIOpen = true end
+            end
+            ImGui.SetCursorPos(lastX, lastY)
             ImGui.NewLine()
             ImGui.SameLine(4)
             enabledIconStyle()
-            ImGui.Text(dotElement.Icon) -- heal
+            ImGui.Text(dotElement.Icon)
             ImGui.PopStyleColor(1)
+            lastX, lastY = ImGui.GetCursorPos()
         end
 
         if elixir.Config.IsNukeAI then
             windowHeight = windowHeight + 20
+            if ImGui.InvisibleButton("nuke", ICON_WIDTH, 20) then
+                elixir.SettingsTabIndex = nukeElement.Index
+                if not elixir.Config.IsElixirUIOpen then elixir.Config.IsElixirUIOpen = true end
+            end
+            ImGui.SetCursorPos(lastX, lastY)
             ImGui.NewLine()
             ImGui.SameLine(4)
             enabledIconStyle()
-            ImGui.Text(nukeElement.Icon) -- heal
+            ImGui.Text(nukeElement.Icon)
             ImGui.PopStyleColor(1)
+            lastX, lastY = ImGui.GetCursorPos()
         end
 
         if elixir.Config.IsBuffAI then
             windowHeight = windowHeight + 20
+            if ImGui.InvisibleButton("buff", ICON_WIDTH, 20) then
+                elixir.SettingsTabIndex = buffElement.Index
+                if not elixir.Config.IsElixirUIOpen then elixir.Config.IsElixirUIOpen = true end
+            end
+            ImGui.SetCursorPos(lastX, lastY)
             ImGui.NewLine()
             ImGui.SameLine(4)
             enabledIconStyle()
-            ImGui.Text(buffElement.Icon) -- heal
+            ImGui.Text(buffElement.Icon)
             ImGui.PopStyleColor(1)
+            lastX, lastY = ImGui.GetCursorPos()
         end
 
         if elixir.Config.IsMeditateAI then
             windowHeight = windowHeight + 20
+            if ImGui.InvisibleButton("meditate", ICON_WIDTH, 20) then
+                elixir.SettingsTabIndex = meditateElement.Index
+                if not elixir.Config.IsElixirUIOpen then elixir.Config.IsElixirUIOpen = true end
+            end
+            ImGui.SetCursorPos(lastX, lastY)
             ImGui.NewLine()
             ImGui.SameLine(4)
             enabledIconStyle()
@@ -234,6 +279,7 @@ function OverlayRender(isOpen)
                 ImGui.Text(meditateElement.CombatIcon) -- combat
                 ImGui.PopStyleColor(1)
             end
+            lastX, lastY = ImGui.GetCursorPos()
         end
 
         if windowHeight ~= elixir.LastOverlayWindowHeight then

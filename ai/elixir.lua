@@ -125,7 +125,7 @@ elixir.Config = {
     IsTargetPetAssist = true,
     TargetMinRange = 40,
     IsTargetAutoAttack = false,
-    IsBuffAI = true,
+    IsBuffAI = false,
     BuffPctNormal = 95,
     IsBuffSubtleCasting = true,
     IsDotAI = true,
@@ -166,7 +166,8 @@ Gem = {}
 function InitializeGem(gemIndex)
     ---@type Gem
     local gem = {}
-    gem.IsIgnored = elixir.Config["IsGem"..gemIndex.."Ignored"]
+    if elixir.Config["IsGem"..gemIndex.."Ignored"] == true then gem.IsIgnored = true end
+
     local spell = mq.TLO.Me.Gem(gemIndex)
     gem.Tag = GenerateSpellTag(spell.ID())
     if spell.Name() then

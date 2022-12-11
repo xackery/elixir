@@ -110,7 +110,7 @@ function heal:FocusCast(elixir)
     end
 
     if elixir.Config.IsHealSubtleCasting and IsMeHighAggro() and not isEmergency then
-        return "subtle casting enabled and currently high hate"
+        return false, "subtle casting enabled and currently high hate"
     end
 
     for i = 1, mq.TLO.Me.NumGems() do
@@ -214,6 +214,7 @@ function heal:snapshotAlliesPctHPs()
         for i = 0, mq.TLO.Group.Members() do
             local pG = mq.TLO.Group.Member(i)
             if pG() and
+            pG.Present() and
             pG.Type() ~= "CORPSE" and
             pG.Distance() < 200 and      
             not pG.Offline() then      

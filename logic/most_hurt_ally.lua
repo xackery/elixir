@@ -15,8 +15,9 @@ function MostHurtAlly()
         for i = 0, mq.TLO.Group.Members() do
             local pG = mq.TLO.Group.Member(i)
             if pG() and
+            pG.Present() and
             pG.Type() ~= "CORPSE" and
-            pG.Distance() < 200 and      
+            pG.Distance() < 200 and
             not pG.Offline() then      
                 local pSpawn = pG.Spawn
                 if elixir.Config.IsHealPets and
