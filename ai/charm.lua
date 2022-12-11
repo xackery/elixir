@@ -3,13 +3,18 @@ local mq = require('mq')
 
 ---@class charm
 ---@field public Output string # AI Debug String
----@field public IsCurrentTargetValid boolean # Is Charm currently valid
+---@field public IsCurrentTargetValid boolean # Is Charm currently valid, used in UI
+---@field public LastTargetID number # last target ID, used in UI
 ---@field public ID number # current charm spawn ID
 ---@field public Name string # current charm spawn name
 ---@field private charmCooldown number # cooldown between charming
 charm = {
     Output = '',
     charmCooldown = 0,
+    Name = '',
+    ID = 0,
+    LastTargetName = '',
+    LastTargetID = 0,
 }
 
 ---Attempts to cast a charm spell
@@ -22,11 +27,22 @@ function charm:Cast(elixir)
     if self.IsCurrentTargetValid and
     (not mq.TLO.Target() or mq.TLO.Target.Type() ~= "NPC") then
         self.IsCharmCurrentValid = false
+        self.LastTargetID = 0
+        self.LastTargetName = ""
     end
-    if !self.IsCurrentTargetValid and
+
+    if not self.IsCurrentTargetValid and
     mq.TLO.Target() and
     mq.TLO.Target.Type() == "NPC" then
         self.IsCurrentTargetValid = true
+        self.LastTargetID = mq.TLO.Target.ID()
+        self.LastTargetName = mq.TLO.Target.Name()
+    end
+
+    if mq.TLO.Target.ID() ~= self.LastTargetID and
+    mq.TLO.Target.Type() == "NPC" then
+        self.LastTargetID = mq.TLO.Target.ID()
+        self.LastTargetName = mq.TLO.Target.Name()
     end
 
     if not self.ID then return "no charm target set" end

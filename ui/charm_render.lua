@@ -25,9 +25,9 @@ local function charmRender()
     ImGui.Text("Current Charm Target: ".. elixir.CharmAI.Name)
     --ImGui.BeginDisabled(not elixir.Config.IsCharmAI)
     --ImGui.BeginDisabled(elixir.CharmAI.IsCurrentTargetValid)
-    if ImGui.Button("Set Charm Target") then
-       elixir.CharmAI.ID = mq.TLO.Target.ID()
-       elixir.CharmAI.Name = mq.TLO.Target.Name()
+    if ImGui.Button("Set Charm Target To "..elixir.CharmAI.LastTargetName) then
+       elixir.CharmAI.ID = elixir.CharmAI.LastTargetID
+       elixir.CharmAI.Name = elixir.CharmAI.LastTargetName
     end
     --ImGui.EndDisabled() -- elixir.CharmAI.IsCurrentTargetValid
     --ImGui.BeginDisabled(elixir.CharmAI.ID == 0)
