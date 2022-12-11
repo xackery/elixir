@@ -104,7 +104,6 @@ function heal:FocusCast(elixir)
     end
 
     if isEmergency then
-        --TODO: check if divine arb, celestial regen, or quick cast spells available
         isCasted, lastCastOutput = self:EmergencyCast(elixir, spawnID)
         if isCasted then return true, lastCastOutput end
     end

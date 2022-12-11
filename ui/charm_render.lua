@@ -11,6 +11,7 @@ local function charmRender()
         return false
     end
     local isChanged
+    local isDisabled
     ImGui.BeginGroup()
 
     local isNewCheckboxValue, isCheckboxChanged = ImGui.Checkbox(charmElement.Title, elixir.Config.IsCharmAI)
@@ -21,13 +22,22 @@ local function charmRender()
     ImGui.SameLine()
     HelpMarker("Enable Charm AI. This handles all charm logic")
 
-    if not elixir.Config.IsCharmAI then
-        ImGui.BeginDisabled()
+    ImGui.Text("Current Charm Target: ".. elixir.CharmAI.Name)
+    --ImGui.BeginDisabled(not elixir.Config.IsCharmAI)
+    --ImGui.BeginDisabled(elixir.CharmAI.IsCurrentTargetValid)
+    if ImGui.Button("Set Charm Target") then
+       elixir.CharmAI.ID = mq.TLO.Target.ID()
+       elixir.CharmAI.Name = mq.TLO.Target.Name()
     end
+    --ImGui.EndDisabled() -- elixir.CharmAI.IsCurrentTargetValid
+    --ImGui.BeginDisabled(elixir.CharmAI.ID == 0)
+    if ImGui.Button("Clear Charm") then
+       elixir.CharmAI.ID = 0
+       elixir.CharmAI.Name = "None"
+    end
+    --ImGui.EndDisabled() -- elixir.CharmAI.ID == 0
+    --ImGui.EndDisabled() -- elixir.Config.IsCharmAI
 
-    if not elixir.Config.IsCharmAI then
-        ImGui.EndDisabled()
-    end
     ImGui.EndGroup()
     return isChanged
 end

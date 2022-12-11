@@ -62,6 +62,7 @@ function dot:CastGem(elixir, targetSpawnID, gemIndex)
     local spell = mq.TLO.Me.Gem(gemIndex)
     if not spell() then return false, "no spell found" end
     if spell.Mana() > mq.TLO.Me.CurrentMana() then return false, "not enough mana (" .. mq.TLO.Me.CurrentMana() .. "/" .. spell.Mana() .. ")" end
+    if not spell.StacksTarget() then return false, "debuff won't stack on target" end
     if mq.TLO.Target.Buff(spell.Name()).ID() then return false, "target already has this dot on them" end
     if mq.TLO.Spawn(targetSpawnID).Distance() > spell.Range() then return false, "target too far away" end
 
