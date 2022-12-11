@@ -24,7 +24,7 @@ local function elixirRender()
     
     ImGui.BeginDisabled(not elixir.Config.IsHealAI)
 
-    --- TODO: Healing Normal Pct
+    ImGui.SliderInt("Heal Normal %", elixir.Config.HealPctNormal, 1, 99)
 
     isNewCheckboxValue, isCheckboxChanged = ImGui.Checkbox("Heal Pets", elixir.Config.IsHealPets)
     if isCheckboxChanged then
