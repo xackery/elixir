@@ -24,8 +24,8 @@ function meditate:Check(elixir)
         return "currently meditating " .. mq.TLO.Me.PctHPs() .."% hp " .. mq.TLO.Me.PctMana() .."% mana"
     end
     if elixir.Config.IsElixirDisabledOnFocus and elixir.IsEQInForeground then return "window focused, ai frozen" end
-    if elixir.ZoneCooldown > mq.gettime() then return "on zone cooldown" end
-    if meditate.meditateCooldown and meditate.meditateCooldown > mq.gettime() then return "on meditate cooldown for " .. ((meditate.meditateCooldown-mq.gettime())/1000).." seconds" end
+    if elixir.ZoneCooldown > mq.gettime() then return string.format("on zone cooldown for %d seconds", math.ceil((elixir.ZoneCooldown-mq.gettime())/1000)) end
+    if meditate.meditateCooldown and meditate.meditateCooldown > mq.gettime() then return string.format("on meditate cooldown for %d seconds", math.ceil((meditate.meditateCooldown-mq.gettime())/1000)) end
     if mq.TLO.Me.PctMana() >= 99 and mq.TLO.Me.PctHPs() > 99 then return "full mana and health, no need to meditate" end
     if elixir.IsActionCompleted then return "previous action completed" end
     if mq.TLO.Me.Stunned() then
@@ -35,7 +35,7 @@ function meditate:Check(elixir)
     if AreObstructionWindowsVisible() then return "window obstructs sitting" end
     if mq.TLO.Me.Moving() then
         self.meditateCooldown = mq.gettime() + 6000
-        return "moved recently, waiting 6s to meditate"  .. self.meditateCooldown
+        return "moved recently, waiting 6s to meditate"
     end
     if mq.TLO.Me.Mount.ID() then return "already on a mount" end
     if mq.TLO.Me.Casting() then return "currently casting" end
@@ -46,6 +46,8 @@ function meditate:Check(elixir)
             return "in combat, can't meditate as per settings"
         end
     end
+    if mq.TLO.Me.AutoFire() then return "autofire enabled, cannot meditate" end
+    if mq.TLO.Me.Combat() then return "autoattack enabled, cannot meditate" end
     if elixir.Config.IsMeditateSubtle and IsMeHighAggro() then return "subtle meditate enabled and currently high hate" end
     if self.isLastStateSitting then
         -- ok, so we stood up last update, and potentially got hurt, let's see how much

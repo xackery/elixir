@@ -15,8 +15,8 @@ function buff:Cast(elixir)
     if not elixir.Config.IsElixirAI then return "elixir ai not running" end
     if not elixir.Config.IsBuffAI then return "buff ai not running" end
     if elixir.Config.IsElixirDisabledOnFocus and elixir.IsEQInForeground then return "window focused, ai frozen" end
-    if elixir.ZoneCooldown > mq.gettime() then return "on zone cooldown" end
-    if self.buffCooldown and self.buffCooldown > mq.gettime() then return "on buff cooldown" end
+    if elixir.ZoneCooldown > mq.gettime() then return string.format("on zone cooldown for %d seconds", math.ceil((elixir.ZoneCooldown-mq.gettime())/1000)) end
+    if self.buffCooldown and self.buffCooldown > mq.gettime() then string.format("on buff cooldown for %d seconds", math.ceil((self.buffCooldown-mq.gettime())/1000)) end
     if elixir.IsActionCompleted then return "previous action completed" end
     if mq.TLO.Me.Stunned() then return "stunned" end
     if AreObstructionWindowsVisible() then return "window obstructs casting" end
@@ -32,7 +32,7 @@ function buff:Cast(elixir)
     local isCasted = false
     local lastCastOutput = "no buffing ability found"
 
-    if elixir.Config.IsBuffSubtleCasting and mq.TLO.Me.PctAggro() > 80 then
+    if elixir.Config.IsBuffSubtleCasting and mq.TLO.Me.Grouped() and mq.TLO.Me.PctAggro() > 80 then
         return string.format("subtle casting enabled and currently high hate %d%%", mq.TLO.Me.PctAggro())
     end
     
@@ -41,7 +41,7 @@ function buff:Cast(elixir)
             not elixir.Gems[i].IsIgnored then
             elixir:DebugPrintf("found buff at gem %d will cast on %d", i, spawn.ID())
             isCasted, lastCastOutput = buff:CastGem(elixir, spawn.ID(), i)
-            elixir.Gems[i].Output = elixir.Gems[i].Output .. " buff ai: " .. lastCastOutput
+            elixir.Gems[i].Output = " buff ai: " .. lastCastOutput
             if isCasted then return lastCastOutput end
         end
     end
@@ -57,11 +57,11 @@ function buff:CastGem(elixir, targetSpawnID, gemIndex)
 
     local spellTag = elixir.Gems[gemIndex].Tag
 
-    if not mq.TLO.Me.SpellReady(gemIndex) then return false, "spell not ready" end
     local spell = mq.TLO.Me.Gem(gemIndex)
+    if not mq.TLO.Me.SpellReady(gemIndex)() then return false, spell.Name().." not ready" end
     if not spell() then return false, "no spell found" end
     if spell.Mana() > mq.TLO.Me.CurrentMana() then return false, "not enough mana (" .. mq.TLO.Me.CurrentMana() .. "/" .. spell.Mana() .. ")" end
-    if mq.TLO.Target.Buff(spell.Name()).ID() then return false, "target already has this buff on them" end
+    if mq.TLO.Target.Buff(spell.Name()).ID() then return false, "target already has "..spell.Name().." on them" end
     if mq.TLO.Spawn(targetSpawnID).Distance() > spell.Range() then return false, "target too far away" end
 
     if spellTag.IsSlow and mq.TLO.Target.Slowed.ID() then

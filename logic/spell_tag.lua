@@ -14,6 +14,7 @@ local mq = require('mq')
 ---@field IsCharm boolean # Is spell a charm
 ---@field IsSnare boolean # Is spell a snare
 ---@field IsSow boolean # Is spell a sow
+---@field IsFear boolean # Is spell a fear one
 ---@field IsTaunt boolean # Is spell a taunt
 ---@field IsPBAE boolean # Is spell a ae
 ---@field IsPetSummon boolean # Is spell a petsummon
@@ -49,7 +50,10 @@ local spellTagCache = {}
 ---@param spellID number
 ---@return SpellTag # SpellTag generated or an error
 local function initializeSpellTag(spellID)
-    local spellTag = {} ---@type SpellTag
+    local spellTag = {
+        StunDuration = 0,
+        IsDot = false,
+    } ---@type SpellTag
 
     local currentSpell = mq.TLO.Spell(spellID)
     if not currentSpell then
@@ -174,6 +178,7 @@ local function initializeSpellTag(spellID)
 
         if attr == 23 then -- SPA_FEAR
             spellTag.IsDebuff = true
+            spellTag.IsFear = true
         end
 
         if attr == 26 then -- SPA_GATE
@@ -1782,6 +1787,8 @@ local function initializeSpellTag(spellID)
         spellTag.IsHeal = true
     end
 
+    if spellTag.IsHeal and spellTag.IsNuke then spellTag.IsLifetap = true end
+
     if currentSpell.CategoryID() == 126 then -- taps
         if currentSpell.SubcategoryID == 43 then -- gives health
             spellTag.IsLifetap = true
@@ -1809,7 +1816,7 @@ local function initializeSpellTag(spellID)
         for property, value in pairs(spellTag) do
             if value then
                 if type(value) == "number" then
-                    tags = string.format("%s%s=%d, ", tags, property, value)
+                    if value ~= 0 then tags = string.format("%s%s=%d, ", tags, property, value) end
                 else
                     tags = tags .. property .. ", "
                 end
@@ -1817,7 +1824,7 @@ local function initializeSpellTag(spellID)
             
         end
         if string.len(tags) > 3 then tags = string.sub(tags, 0, -3) end
-        elixir:DebugPrintf("initialized new spell %s (%d) tags: %s", currentSpell.Name(), spellID, tags)
+        elixir:DebugPrintf("[Elixir] Initialized new spell %s (%d) tags: %s", currentSpell.Name(), spellID, tags)
     end
 
     return spellTag

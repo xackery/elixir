@@ -1,3 +1,6 @@
+---@type Mq
+local mq = require('mq')
+
 function IsTankInParty()
     if mq.TLO.Me.Class.ShortName() == "WAR" or mq.TLO.Me.Class.ShortName() == "SHD" or mq.TLO.Me.Class.ShortName() == "PAL" then return false end
     if mq.TLO.Group.GroupSize() then

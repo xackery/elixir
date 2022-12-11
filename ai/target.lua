@@ -21,8 +21,8 @@ function target:Check(elixir)
     end
     self.IsTargetAttackable = false
     if elixir.Config.IsElixirDisabledOnFocus and elixir.IsEQInForeground then return "window focused, ai frozen" end
-    if elixir.ZoneCooldown > mq.gettime() then return "on zone cooldown" end
-    if self.targetCooldown and self.targetCooldown > mq.gettime() then return "on target cooldown" end
+    if elixir.ZoneCooldown > mq.gettime() then return string.format("on zone cooldown for %d seconds", math.ceil((elixir.ZoneCooldown-mq.gettime())/1000)) end
+    if self.targetCooldown and self.targetCooldown > mq.gettime() then return string.format("on target cooldown for %d seconds", math.ceil((self.targetCooldown-mq.gettime())/1000)) end
     if elixir.IsActionCompleted then return "previous action completed" end
     if mq.TLO.Me.Stunned() then return "stunned" end
     if AreObstructionWindowsVisible() then return "window obstructs casting" end

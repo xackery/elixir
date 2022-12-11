@@ -1,6 +1,6 @@
 ---@type Element
 local debugElement = {}
-debugElement.Index = 10
+debugElement.Index = 16
 debugElement.Icon = '\xee\xa1\xa8'
 debugElement.Title = debugElement.Icon .. ' Debugger'
 

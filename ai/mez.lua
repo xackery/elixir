@@ -15,8 +15,8 @@ function mez:Cast(elixir)
     if not elixir.Config.IsElixirAI then return "elixir ai not running" end
     if not elixir.Config.IsMezAI then return "mez ai not running" end
     if elixir.Config.IsElixirDisabledOnFocus and elixir.IsEQInForeground then return "window focused, ai frozen" end
-    if elixir.ZoneCooldown > mq.gettime() then return "on zone cooldown" end
-    if self.mezCooldown and self.mezCooldown > mq.gettime() then return "on mez cooldown" end
+    if elixir.ZoneCooldown > mq.gettime() then return string.format("on zone cooldown for %d seconds", math.ceil((elixir.ZoneCooldown-mq.gettime())/1000)) end
+    if self.mezCooldown and self.mezCooldown > mq.gettime() then return string.format("on mez cooldown for %d seconds", math.ceil((self.mezCooldown-mq.gettime())/1000)) end
     if elixir.IsActionCompleted then return "previous action completed" end
     if mq.TLO.Me.Stunned() then return "stunned" end
     if AreObstructionWindowsVisible() then return "window obstructs casting" end
@@ -45,8 +45,8 @@ end
 ---@param gemIndex number
 ---@returns isSuccess boolean, castOutput string
 function mez:CastGem(elixir, targetSpawnID, gemIndex)
-    if not mq.TLO.Me.SpellReady(gemIndex) then return false, "spell not ready" end
     local spell = mq.TLO.Me.Gem(gemIndex)
+    if not mq.TLO.Me.SpellReady(gemIndex)() then return false, spell.Name().." not ready" end
     if not spell() then return false, "no spell found" end
     if spell.Mana() > mq.TLO.Me.CurrentMana() then return false, "not enough mana (" .. mq.TLO.Me.CurrentMana() .. "/" .. spell.Mana() .. ")" end
     if mq.TLO.Spawn(targetSpawnID).Distance() > spell.Range() then return false, "target too far away" end

@@ -1,7 +1,7 @@
 ---@type Element
 local attackElement = {}
 attackElement.Index = 14
-attackElement.Icon = '\xef\x81\xa9'
+attackElement.Icon = '\xef\x81\x9b'
 attackElement.Title = attackElement.Icon .. ' Attack AI'
 
 ---@returns isChanged boolean # if a config change is detected, returns true

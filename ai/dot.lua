@@ -3,7 +3,7 @@ local mq = require('mq')
 
 ---@class dot
 ---@field public Output string # AI Debug String
----@field private dotCooldown number # cooldown between doting
+---@field private dotCooldown number # cooldown between dotting
 dot = {
     Output = '',
     dotCooldown = 0,
@@ -15,8 +15,8 @@ function dot:Cast(elixir)
     if not elixir.Config.IsElixirAI then return "elixir ai not running" end
     if not elixir.Config.IsDotAI then return "dot ai not running" end
     if elixir.Config.IsElixirDisabledOnFocus and elixir.IsEQInForeground then return "window focused, ai frozen" end
-    if elixir.ZoneCooldown > mq.gettime() then return "on zone cooldown" end
-    if self.dotCooldown and self.dotCooldown > mq.gettime() then return "on dot cooldown" end
+    if elixir.ZoneCooldown > mq.gettime() then return string.format("on zone cooldown for %d seconds", math.ceil((elixir.ZoneCooldown-mq.gettime())/1000)) end
+    if self.dotCooldown and self.dotCooldown > mq.gettime() then string.format("on dot cooldown for %d seconds", math.ceil((self.dotCooldown-mq.gettime())/1000)) end
     if elixir.IsActionCompleted then return "previous action completed" end
     if mq.TLO.Me.Stunned() then return "stunned" end
     if AreObstructionWindowsVisible() then return "window obstructs casting" end
@@ -31,18 +31,18 @@ function dot:Cast(elixir)
     if not spawn.LineOfSight() then return "target "..spawn.Name().." is not line of sight" end
 
     local isCasted = false
-    local lastCastOutput = "no doting ability found"
+    local lastCastOutput = "no dotting ability found"
 
-    if elixir.Config.IsDotSubtleCasting and mq.TLO.Me.PctAggro() > 80 then
+    if elixir.Config.IsDotSubtleCasting and mq.TLO.Me.Grouped() and mq.TLO.Me.PctAggro() > 80 then
         return string.format("subtle casting enabled and currently high hate %d%%", mq.TLO.Me.PctAggro())
     end
 
     for i = 1, mq.TLO.Me.NumGems() do
+        if i == 4 then print(string.format("gem %d is a dot? %s", i, elixir.Gems[i].Tag.DamageAmount)) end        
         if elixir.Gems[i].Tag.IsDot and
             not elixir.Gems[i].IsIgnored then
-            elixir:DebugPrintf("found dot at gem %d will cast on %d", i, spawn.ID())
             isCasted, lastCastOutput = dot:CastGem(elixir, spawn.ID(), i)
-            elixir.Gems[i].Output = elixir.Gems[i].Output .. " dot ai: " .. lastCastOutput
+            elixir.Gems[i].Output = " dot ai: " .. lastCastOutput
             if isCasted then return lastCastOutput end
         end
     end
@@ -58,12 +58,12 @@ function dot:CastGem(elixir, targetSpawnID, gemIndex)
 
     local spellTag = elixir.Gems[gemIndex].Tag
 
-    if not mq.TLO.Me.SpellReady(gemIndex) then return false, "spell not ready" end
     local spell = mq.TLO.Me.Gem(gemIndex)
+    if not mq.TLO.Me.SpellReady(gemIndex)() then return false, spell.Name().." not ready" end
     if not spell() then return false, "no spell found" end
     if spell.Mana() > mq.TLO.Me.CurrentMana() then return false, "not enough mana (" .. mq.TLO.Me.CurrentMana() .. "/" .. spell.Mana() .. ")" end
     if not spell.StacksTarget() then return false, "debuff won't stack on target" end
-    if mq.TLO.Target.Buff(spell.Name()).ID() then return false, "target already has this dot on them" end
+    if mq.TLO.Target.Buff(spell.Name()).ID() then return false, "target already has "..spell.Name().." on them" end
     if mq.TLO.Spawn(targetSpawnID).Distance() > spell.Range() then return false, "target too far away" end
 
     if spellTag.IsSlow and mq.TLO.Target.Slowed.ID() then

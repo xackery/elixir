@@ -18,8 +18,8 @@ function attack:Cast(elixir)
     if not elixir.Config.IsElixirAI then return "elixir ai not running" end
     if not elixir.Config.IsAttackAI then return "attack ai not running" end
     if elixir.Config.IsElixirDisabledOnFocus and elixir.IsEQInForeground then return "window focused, ai frozen" end
-    if elixir.ZoneCooldown > mq.gettime() then return "on zone cooldown" end
-    if self.attackCooldown and self.attackCooldown > mq.gettime() then return "on attack cooldown" end
+    if elixir.ZoneCooldown > mq.gettime() then return string.format("on zone cooldown for %d seconds", math.ceil((elixir.ZoneCooldown-mq.gettime())/1000)) end
+    if self.attackCooldown and self.attackCooldown > mq.gettime() then string.format("on attack cooldown for %d seconds", math.ceil((self.attackCooldown-mq.gettime())/1000)) end
     if elixir.IsActionCompleted then return "previous action completed" end
     if mq.TLO.Me.Stunned() then return "stunned" end
     if AreObstructionWindowsVisible() then return "window obstructs casting" end

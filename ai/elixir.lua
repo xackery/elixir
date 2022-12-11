@@ -49,7 +49,8 @@ elixir = {
     IsActionCompleted = false,
     lastZoneID = 0,
     SettingsTabIndex = 10,
-    LastOverlayWindowHeight = 0
+    LastOverlayWindowHeight = 0,
+    IsTankInParty = false,
 }
 ---@alias MoveType "nav"|"advpath"|"moveutils"|"dynamic"
 
@@ -148,6 +149,8 @@ elixir = {
 ---Debuff AI
 ---@field public IsDebuffAI boolean # Is Debuff AI enabled
 ---@field public DebuffPctNormal number # % to debuff normal
+---@field public IsDebuffFearKiting boolean # is fear kiting allowed
+---@field public IsDebuffNoSnareFearKiting boolean # is fear kiting without a snared mob allowed
 ---@field public IsDebuffSubtleCasting boolean # Is debuffing a subtle casting feature
 ---Meditate AI
 ---@field public IsMeditateAI boolean # Is Meditate AI enabled
@@ -175,6 +178,7 @@ elixir.Config = {
     IsHealPets = true,
     IsHealXTarget = true,
     IsHotAI = true,
+    HotPctNormal = 50,
     IsStunAI = true,
     IsElixirUIOpen = true,
     IsDebugEnabled = true,
@@ -212,6 +216,8 @@ elixir.Config = {
     IsDebuffAI = true,
     DebuffPctNormal = 95,
     IsDebuffSubtleCasting = true,
+    IsDebuffFearKiting = true,
+    IsDebuffNoSnareFearKiting = false,
     IsMeditateDuringCombat = true,
     IsDebugVerboseEnabled = true,
     IsGem1Ignored = false,
@@ -235,26 +241,52 @@ elixir.Config = {
 ---@field SpellName string # Used for displaying on settings
 ---@field IsIgnored boolean # Ignore this gem for AI
 ---@field Output string # Tooltip message on state of this gem
+---@field LastOutput string # Last tooltip message
+---@field LastOutputCounter number # counts down how long a message stays
 ---@field Tag SpellTag # Spell Tag data
 Gem = {}
+Gem.__index = Gem
 
-function InitializeGem(gemIndex)
-    ---@type Gem
-    local gem = {}
-    if elixir.Config["IsGem"..gemIndex.."Ignored"] == true then gem.IsIgnored = true end
+function Gem.new(init)
+    local self = setmetatable({
+        SpellID = 0,
+        SpellName = "None",
+        IsIgnored = false,
+        Output = "",
+        LastOutput = "",
+        LastOutputCounter = 0,
+        Tag = {},
+    }, Gem)
+    
+    return self
+end
+
+function Gem:Refresh(gemIndex)
+    if elixir.Config["IsGem"..gemIndex.."Ignored"] == true then self.IsIgnored = true end
 
     local spell = mq.TLO.Me.Gem(gemIndex)
-    gem.Tag = GenerateSpellTag(spell.ID())
+    self.Tag = GenerateSpellTag(spell.ID())
     if spell.Name() then
-        gem.SpellName = spell.Name()
+        self.SpellName = spell.Name()
     else
-        gem.SpellName = "None"
+        self.SpellName = "None"
     end
-    if not gem.Output then gem.Output = "" end
+    
+    if self.Output ~= "idle" and self.LastOutput == self.Output then
+        self.LastOutputCounter = self.LastOutputCounter + 1
+        if self.LastOutputCounter > 5 then
+            self.Output = "idle"
+            self.LastOutput = "idle"
+            self.LastOutputCounter = 0
+        end
+    else
+        self.LastOutputCounter = 0
+    end
+    self.LastOutput = self.Output
+
     if not spell() or spell.ID() == 0 then
-        gem.Output = "no spell memorized"
+        self.Output = "no spell memorized"
     end
-    return gem
 end
 
 ---@class Button
@@ -343,7 +375,7 @@ function elixir:Initialize()
     --sanitizeConfig()
 
     for i = 1, mq.TLO.Me.NumGems() do
-        self.Gems[i] = InitializeGem(i)
+        self.Gems[i] = Gem.new()
     end
 
     self.MaxGemCount = mq.TLO.Me.NumGems()
@@ -359,7 +391,8 @@ function elixir:Reset()
     end
     self.IsTankInParty = IsTankInParty()
     for i = 1, mq.TLO.Me.NumGems() do
-        self.Gems[i] = InitializeGem(i)
+        if not self.Gems[i] then self.Gems[i] = {} end
+        self.Gems[i]:Refresh(i)
     end
     self.IsInGame = (mq.TLO.EverQuest.GameState() == "INGAME")
 end
@@ -381,13 +414,18 @@ function elixir:Update()
     end
 
     self.HealAI.Output = self.HealAI:Cast(elixir)
+    self.StunAI.Output = self.StunAI:Cast(elixir)
     self.CharmAI.Output = self.CharmAI:Cast(elixir)
     self.HotAI.Output = self.HotAI:Cast(elixir)
+    self.MezAI.Output = self.MezAI:Cast(elixir)
     self.TargetAI.Output = self.TargetAI:Check(elixir)
     self.DebuffAI.Output = self.DebuffAI:Cast(elixir)
     self.DotAI.Output = self.DotAI:Cast(elixir)
     self.NukeAI.Output = self.NukeAI:Cast(elixir)
     self.BuffAI.Output = self.BuffAI:Cast(elixir)
+    self.MoveAI.Output = self.MoveAI:Cast(elixir)
+    self.ArcheryAI.Output = self.ArcheryAI:Cast(elixir)
+    self.AttackAI.Output = self.AttackAI:Cast(elixir)
     self.MeditateAI.Output = self.MeditateAI:Check(elixir)
 end
 

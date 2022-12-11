@@ -1,7 +1,7 @@
 ---@type Element
 local mezElement = {}
 mezElement.Index = 6
-mezElement.Icon = '\xef\x83\xbc'
+mezElement.Icon = '\xee\x80\xab'
 mezElement.Title = mezElement.Icon .. ' Mez AI'
 
 ---@returns isChanged boolean # if a config change is detected, returns true

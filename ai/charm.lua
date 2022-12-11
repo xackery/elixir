@@ -48,9 +48,9 @@ function charm:Cast(elixir)
     if not self.ID then return "no charm target set" end
 
     if elixir.Config.IsElixirDisabledOnFocus and elixir.IsEQInForeground then return "window focused, ai frozen" end
-    if elixir.ZoneCooldown > mq.gettime() then return "on zone cooldown" end
+    if elixir.ZoneCooldown > mq.gettime() then return string.format("on zone cooldown for %d seconds", math.ceil((elixir.ZoneCooldown-mq.gettime())/1000)) end
 
-    if self.charmCooldown and self.charmCooldown > mq.gettime() then return "on charm cooldown" end
+    if self.charmCooldown and self.charmCooldown > mq.gettime() then string.format("on charm cooldown for %d seconds", math.ceil((self.charmCooldown-mq.gettime())/1000)) end
     if elixir.IsActionCompleted then return "previous action completed" end
     if mq.TLO.Me.Stunned() then return "stunned" end
     if AreObstructionWindowsVisible() then return "window obstructs casting" end
@@ -86,7 +86,7 @@ function charm:Cast(elixir)
             not elixir.Gems[i].IsIgnored then
             elixir:DebugPrintf("found charm at gem %d will cast on %d", i, spawn.ID())
             isCasted, lastCastOutput = charm:CastGem(elixir, spawn.ID(), i)
-            elixir.Gems[i].Output = elixir.Gems[i].Output .. " charm ai: " .. lastCastOutput
+            elixir.Gems[i].Output = " charm ai: " .. lastCastOutput
             if isCasted then return lastCastOutput end
         end
     end
@@ -102,11 +102,11 @@ function charm:CastGem(elixir, targetSpawnID, gemIndex)
 
     local spellTag = elixir.Gems[gemIndex].Tag
 
-    if not mq.TLO.Me.SpellReady(gemIndex) then return false, "spell not ready" end
     local spell = mq.TLO.Me.Gem(gemIndex)
+    if not mq.TLO.Me.SpellReady(gemIndex)() then return false, spell.Name().." not ready" end
     if not spell() then return false, "no spell found" end
     if spell.Mana() > mq.TLO.Me.CurrentMana() then return false, "not enough mana (" .. mq.TLO.Me.CurrentMana() .. "/" .. spell.Mana() .. ")" end    
-    if mq.TLO.Target.Buff(spell.Name()).ID() then return false, "target already has this charm on them" end
+    if mq.TLO.Target.Buff(spell.Name()).ID() then return false, "target already has "..spell.Name().." on them" end
     if mq.TLO.Spawn(targetSpawnID).Distance() > spell.Range() then return false, "target too far away" end
 
     if spellTag.IsSlow and mq.TLO.Target.Slowed.ID() then

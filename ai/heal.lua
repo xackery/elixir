@@ -20,8 +20,8 @@ function heal:Cast(elixir)
     if not elixir.Config.IsElixirAI then return "elixir ai not running" end
     if not elixir.Config.IsHealAI then return "heal ai not running" end
     if elixir.Config.IsElixirDisabledOnFocus and elixir.IsEQInForeground then return "window focused, ai frozen" end
-    if elixir.ZoneCooldown > mq.gettime() then return "on zone cooldown" end
-    if self.healCooldown and self.healCooldown > mq.gettime() then return "on heal cooldown" end
+    if elixir.ZoneCooldown > mq.gettime() then return string.format("on zone cooldown for %d seconds", math.ceil((elixir.ZoneCooldown-mq.gettime())/1000)) end
+    if self.healCooldown and self.healCooldown > mq.gettime() then string.format("on heal cooldown for %d seconds", math.ceil((self.healCooldown-mq.gettime())/1000)) end
     if elixir.IsActionCompleted then return "previous action completed" end
     if mq.TLO.Me.Stunned() then return "stunned" end
     if AreObstructionWindowsVisible() then return "window obstructs casting" end
@@ -62,7 +62,7 @@ function heal:Cast(elixir)
 
     self:snapshotAlliesPctHPs()
 
-    if elixir.Config.IsHealSubtleCasting and IsMeHighAggro() and not isEmergency then
+    if elixir.Config.IsHealSubtleCasting and mq.TLO.Me.Grouped() and IsMeHighAggro() and not isEmergency then
         return "subtle casting enabled and currently high hate"
     end
 
@@ -71,11 +71,12 @@ function heal:Cast(elixir)
         for i = 1, mq.TLO.Me.NumGems() do
             if elixir.Gems[i].Tag.IsHeal and
                 elixir.Gems[i].Tag.IsGroupSpell and
+                (not elixir.Gems[i].Tag.IsNuke or elixir.TargetAI.IsTargetAttackable) and -- lifetap check
                 not elixir.Gems[i].IsIgnored then
                 
                 elixir:DebugPrintf("found group heal at gem %d will cast on %d (%d total allies need heal)", i, spawnID, spawnCount)
                 isCasted, lastCastOutput = heal:CastGem(elixir, spawnID, i)
-                elixir.Gems[i].Output = elixir.Gems[i].Output .. " heal ai: " .. lastCastOutput
+                elixir.Gems[i].Output = " heal ai: " .. lastCastOutput
                 if isCasted then return lastCastOutput end
             end
         end
@@ -84,11 +85,12 @@ function heal:Cast(elixir)
     
     for i = 1, mq.TLO.Me.NumGems() do
         if elixir.Gems[i].Tag.IsHeal and
+            (not elixir.Gems[i].Tag.IsNuke or elixir.TargetAI.IsTargetAttackable) and -- lifetap check
             not elixir.Gems[i].IsIgnored then
             
             elixir:DebugPrintf("found heal at gem %d will cast on %d", i, spawnID)
             isCasted, lastCastOutput = heal:CastGem(elixir, spawnID, i)
-            elixir.Gems[i].Output = elixir.Gems[i].Output .. " heal ai: " .. lastCastOutput
+            elixir.Gems[i].Output = " heal ai: " .. lastCastOutput
             if isCasted then return lastCastOutput end
         end
     end
@@ -130,12 +132,13 @@ function heal:FocusCast(elixir)
 
     end
 
-    if elixir.Config.IsHealSubtleCasting and IsMeHighAggro() and not isEmergency then
+    if elixir.Config.IsHealSubtleCasting and mq.TLO.Me.Grouped() and IsMeHighAggro() and not isEmergency then
         return false, "subtle casting enabled and currently high hate"
     end
 
     for i = 1, mq.TLO.Me.NumGems() do
         if elixir.Gems[i].Tag.IsHeal and
+            (not elixir.Gems[i].Tag.IsNuke or elixir.TargetAI.IsTargetAttackable) and -- lifetap check
             not elixir.Gems[i].IsIgnored and
             (elixir.Config.HealFocusSpellID == elixir.Gems[i].SpellID or
             elixir.Config.HealFocusSpellID == 0)
@@ -145,7 +148,7 @@ function heal:FocusCast(elixir)
             if isCasted then
                 if not elixir.Config.IsHealFocusFallback then
                     -- only append heal ai logic from focus if the fallback flag is disabled
-                    elixir.Gems[i].Output = elixir.Gems[i].Output .. " heal ai: " .. lastCastOutput
+                    elixir.Gems[i].Output = " heal ai: " .. lastCastOutput
                 end
                 self:snapshotAlliesPctHPs()
                 return isCasted, lastCastOutput
@@ -184,8 +187,9 @@ function heal:EmergencyCast(elixir, spawnID)
     local lastCastOutput = "no emergency heal found"
     for i = 1, mq.TLO.Me.NumGems() do
         if elixir.Gems[i].Tag.IsHeal and
+            (not elixir.Gems[i].Tag.IsNuke or elixir.TargetAI.IsTargetAttackable) and -- lifetap check
             not elixir.Gems[i].IsIgnored and
-            mq.TLO.Me.SpellReady(i) then
+            mq.TLO.Me.SpellReady(i)() then
             
             local spell = mq.TLO.Me.Gem(i)
             if spell() and spell.Mana() > mq.TLO.Me.CurrentMana() and
@@ -196,7 +200,7 @@ function heal:EmergencyCast(elixir, spawnID)
                 if isCasted then
                     if not elixir.Config.IsHealFocusFallback then
                         -- only append heal ai logic from focus if the fallback flag is disabled
-                        elixir.Gems[i].Output = elixir.Gems[i].Output .. " heal ai: " .. lastCastOutput
+                        elixir.Gems[i].Output = " heal ai: " .. lastCastOutput
                     end
                     return isCasted, lastCastOutput
                 end
@@ -212,8 +216,8 @@ end
 ---@param gemIndex number
 ---@returns isSuccess boolean, castOutput string
 function heal:CastGem(elixir, targetSpawnID, gemIndex)
-    if not mq.TLO.Me.SpellReady(gemIndex) then return false, "spell not ready" end
     local spell = mq.TLO.Me.Gem(gemIndex)
+    if not mq.TLO.Me.SpellReady(gemIndex)() then return false, spell.Name().." not ready" end
     if not spell() then return false, "no spell found" end
     if spell.Mana() > mq.TLO.Me.CurrentMana() then return false, "not enough mana (" .. mq.TLO.Me.CurrentMana() .. "/" .. spell.Mana() .. ")" end
 

@@ -1,7 +1,7 @@
 ---@type Element
 local archeryElement = {}
 archeryElement.Index = 13
-archeryElement.Icon = '\xef\x81\xa9'
+archeryElement.Icon = '\xee\x8c\x95'
 archeryElement.Title = archeryElement.Icon .. ' Archery AI'
 
 ---@returns isChanged boolean # if a config change is detected, returns true

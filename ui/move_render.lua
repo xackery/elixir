@@ -1,7 +1,7 @@
 ---@type Element
 local moveElement = {}
 moveElement.Index = 12
-moveElement.Icon = '\xef\x81\xa9'
+moveElement.Icon = '\xee\x94\xb6'
 moveElement.Title = moveElement.Icon .. ' Move AI'
 
 ---@returns isChanged boolean # if a config change is detected, returns true

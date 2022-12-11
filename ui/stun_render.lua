@@ -1,7 +1,7 @@
 ---@type Element
 local stunElement = {}
 stunElement.Index = 3
-stunElement.Icon = '\xef\x83\xa7'
+stunElement.Icon = '\xef\x84\xad'
 stunElement.Title = stunElement.Icon .. ' Stun AI'
 
 ---@returns isChanged boolean # if a config change is detected, returns true

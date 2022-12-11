@@ -20,8 +20,8 @@ function hot:Cast(elixir)
     if not elixir.Config.IsElixirAI then return "elixir ai not running" end
     if not elixir.Config.IsHotAI then return "hot ai not running" end
     if elixir.Config.IsElixirDisabledOnFocus and elixir.IsEQInForeground then return "window focused, ai frozen" end
-    if elixir.ZoneCooldown > mq.gettime() then return "on zone cooldown" end
-    if self.hotCooldown and self.hotCooldown > mq.gettime() then return "on hot cooldown" end
+    if elixir.ZoneCooldown > mq.gettime() then return string.format("on zone cooldown for %d seconds", math.ceil((elixir.ZoneCooldown-mq.gettime())/1000)) end
+    if self.hotCooldown and self.hotCooldown > mq.gettime() then return string.format("on hot cooldown for %d seconds", math.ceil((self.hotCooldown-mq.gettime())/1000)) end
     if elixir.IsActionCompleted then return "previous action completed" end
     if mq.TLO.Me.Stunned() then return "stunned" end
     if AreObstructionWindowsVisible() then return "window obstructs casting" end
@@ -52,7 +52,7 @@ function hot:Cast(elixir)
                 
                 elixir:DebugPrintf("found group hot at gem %d will cast on %d", i, spawnID)
                 isCasted, lastCastOutput = hot:CastGem(elixir, spawnID, i)
-                elixir.Gems[i].Output = elixir.Gems[i].Output .. " hot ai: " .. lastCastOutput
+                elixir.Gems[i].Output = " hot ai: " .. lastCastOutput
                 if isCasted then return lastCastOutput end
             end
         end
@@ -65,7 +65,7 @@ function hot:Cast(elixir)
 
             elixir:DebugPrintf("found hot at gem %d will cast on %d", i, spawnID)
             isCasted, lastCastOutput = hot:CastGem(elixir, spawnID, i)
-            elixir.Gems[i].Output = elixir.Gems[i].Output .. " hot ai: " .. lastCastOutput
+            elixir.Gems[i].Output = " hot ai: " .. lastCastOutput
             if isCasted then return lastCastOutput end
         end
     end
@@ -97,7 +97,7 @@ function hot:FocusCast(elixir)
             if isCasted then
                 if not elixir.Config.IsHotFocusFallback then
                     -- only append hot ai logic from focus if the fallback flag is disabled
-                    elixir.Gems[i].Output = elixir.Gems[i].Output .. " hot ai: " .. lastCastOutput
+                    elixir.Gems[i].Output = " hot ai: " .. lastCastOutput
                 end
                 return isCasted, lastCastOutput
             end
@@ -112,8 +112,8 @@ end
 ---@param gemIndex number
 ---@returns isSuccess boolean, castOutput string
 function hot:CastGem(elixir, targetSpawnID, gemIndex)
-    if not mq.TLO.Me.SpellReady(gemIndex) then return false, "spell not ready" end
     local spell = mq.TLO.Me.Gem(gemIndex)
+    if not mq.TLO.Me.SpellReady(gemIndex)() then return false, spell.Name().." not ready" end
     if not spell() then return false, "no spell found" end
     if spell.Mana() > mq.TLO.Me.CurrentMana() then return false, "not enough mana (" .. mq.TLO.Me.CurrentMana() .. "/" .. spell.Mana() .. ")" end
 
