@@ -24,7 +24,38 @@ local function elixirRender()
     
     ImGui.BeginDisabled(not elixir.Config.IsHealAI)
 
-    ImGui.SliderInt("Heal Normal %", elixir.Config.HealPctNormal, 1, 99)
+    ImGui.PushItemWidth(100)
+    local isNewSliderValue, isSliderChanged = ImGui.SliderInt("Normal Threshold", elixir.Config.HealPctNormal, 1, 99, "%d%% HP")
+    if isSliderChanged then
+        isChanged = true
+        elixir.Config.HealPctNormal = isNewSliderValue
+    end
+    ImGui.SameLine()
+    HelpMarker("Use normal heals on allies when they meet this threshold")
+
+    if not elixir.HealAI.IsHealNormalSoundValid then
+        ImGui.PushStyleColor(ImGuiCol.Text, 0.8, 0.28, 0.28, 1)
+    end    
+    local isNewTextValue, isTextChanged = ImGui.InputText("Normal Alert", elixir.Config.HealNormalSound)
+    if not elixir.HealAI.IsHealNormalSoundValid then
+        ImGui.PopStyleColor(1)
+    end
+    if isTextChanged then
+        isChanged = true
+        elixir.Config.HealNormalSound = isNewTextValue
+        local f = io.open(string.format("%s/elixir/%s.wav", elixir.ConfigPath, elixir.Config.HealNormalSound))
+        print(string.format("%s/elixir/%s.wav", elixir.ConfigPath, elixir.Config.HealNormalSound))
+        if f ~= nil then
+            elixir.HealAI.IsHealNormalSoundValid = true
+            io.close(f)
+        else
+            elixir.HealAI.IsHealNormalSoundValid = false
+        end
+    end
+    ImGui.SameLine()
+    HelpMarker(string.format("Attempt to use provided alert when a heal is casted. Place a wav in %s\\elixir\\ and type just the base filename in the field", elixir.ConfigPath))
+
+    ImGui.Separator()
 
     isNewCheckboxValue, isCheckboxChanged = ImGui.Checkbox("Heal Pets", elixir.Config.IsHealPets)
     if isCheckboxChanged then
@@ -58,6 +89,7 @@ local function elixirRender()
     ImGui.SameLine()
     HelpMarker("When enabled, if aggro is greater than 80% on any XTarget, do not try to heal at risk of getting attacked.\nNote that Emergency Healing, if enabled, will ignore Subtle Casting since the situation is considered dire.")
 
+
     isNewCheckboxValue, isCheckboxChanged = ImGui.Checkbox("Emergency Healing", elixir.Config.IsHealEmergencyAllowed)
     if isCheckboxChanged then
         elixir.Config.IsHealEmergencyAllowed = isNewCheckboxValue
@@ -65,6 +97,37 @@ local function elixirRender()
     end
     ImGui.SameLine()
     HelpMarker("When enabled, try to use emergency heals to try to save a bad situation.\nNote that this will prioritize AAs such Divine Arbitration, Celestial Regeneration, and quick casting spells that are not mana efficient to try to save the at risk ally.")    
+    
+    ImGui.PushItemWidth(100)
+    local isNewSliderValue, isSliderChanged = ImGui.SliderInt("Emergency Threshold", elixir.Config.HealPctEmergency, 1, 99, "%d%% HP")
+    if isSliderChanged then
+        isChanged = true
+        elixir.Config.HealPctEmergency = isNewSliderValue
+    end
+    ImGui.SameLine()
+    HelpMarker("Use emergency heals on allies when they meet this threshold")
+
+    if not elixir.HealAI.IsHealEmergencySoundValid then
+        ImGui.PushStyleColor(ImGuiCol.Text, 0.8, 0.28, 0.28, 1)
+    end    
+    local isNewTextValue, isTextChanged = ImGui.InputText("Emergency Alert", elixir.Config.HealEmergencySound)
+    if not elixir.HealAI.IsHealEmergencySoundValid then
+        ImGui.PopStyleColor(1)
+    end
+    if isTextChanged then
+        isChanged = true
+        elixir.Config.HealEmergencySound = isNewTextValue
+        local f = io.open(string.format("%s/elixir/%s.wav", elixir.ConfigPath, elixir.Config.HealEmergencySound))
+        print(string.format("%s/elixir/%s.wav", elixir.ConfigPath, elixir.Config.HealEmergencySound))
+        if f ~= nil then
+            elixir.HealAI.IsHealEmergencySoundValid = true
+            io.close(f)
+        else
+            elixir.HealAI.IsHealEmergencySoundValid = false
+        end
+    end
+    ImGui.SameLine()
+    HelpMarker(string.format("Attempt to use provided alert when a heal is casted. Place a wav in %s\\elixir\\ and type just the base filename in the field", elixir.ConfigPath))
     
     
     --ImGui.BeginDisabled(elixir.Config.IsHealAI and not elixir.Config.IsHealEmergencyAllowed)

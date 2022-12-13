@@ -43,7 +43,7 @@ function target:Check(elixir)
     
     if mq.TLO.Target() and mq.TLO.Target.ID() == spawnID then
         self.IsTargetAttackable = true
-        if mq.TLO.Pet() and 
+        if mq.TLO.Pet() and
         mq.TLO.Pet.ID() > 0 and
         (not mq.TLO.Pet.Target() or mq.TLO.Pet.Target.ID() ~= spawnID) and
         elixir.Config.IsTargetPetAssist and
@@ -53,12 +53,12 @@ function target:Check(elixir)
             return "setting pet to attack "..spawn.Name()
         end
         
-        return "assisting ".. spawn.Name()
+        return "already assisting ".. spawn.Name()
     end
     self.targetCooldown = mq.gettime() + 6000
     mq.cmd(string.format("/target id %d", spawnID))
-    elixir.IsActionCompleted = true
-    elixir.LastActionOutput = string.format("assisting %s on %s", mq.TLO.Group.MainAssist.Name(), spawn.Name())
+    --elixir.IsActionCompleted = true
+    --elixir.LastActionOutput = string.format("assisting %s on %s", mq.TLO.Group.MainAssist.Name(), spawn.Name())
     return elixir.LastActionOutput
 end
 

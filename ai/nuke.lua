@@ -24,6 +24,7 @@ function nuke:Cast(elixir)
     if mq.TLO.Me.Casting.ID() then return string.format("already casting %s", mq.TLO.Me.Casting.Name()) end
     if mq.TLO.Window("Casting").Open() then return "casting window open" end
     if mq.TLO.Me.Animation() == 16 then return "feign death" end
+    if mq.TLO.Me.PctMana() < elixir.Config.NukePctMinMana then return string.format("mana too low at %d%%, needs to be greater than %d%%", mq.TLO.Me.PctMana(), elixir.Config.NukePctMinMana) end
     local spawn = mq.TLO.Target
     if not spawn() then return "no target" end
     if spawn.Type() ~= "NPC" then return "target is not NPC" end

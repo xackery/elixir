@@ -5,6 +5,8 @@ require('logic')
 
 ---@class heal
 ---@field public Output string # AI Debug String
+---@field public IsHealNormalSoundValid boolean # Is the heal normal sound a valid one?
+---@field public IsHealEmergencySoundValid boolean # Is the heal emergency sound a valid one?
 ---@field private healCooldown number # cooldown timer to use heal
 ---@field private spawnSnapshot number[] # snapshot of spawn HPs for predictive healing
 heal = {
@@ -30,8 +32,6 @@ function heal:Cast(elixir)
     if mq.TLO.Window("Casting").Open() then return "casting window open" end
     if mq.TLO.Me.Animation() == 16 then return "feign death" end
 
-    
-    
     local isFocusCasted, focusOutput = heal:FocusCast(elixir)
     if isFocusCasted then return focusOutput end
     if elixir.Config.IsHealFocus and not elixir.Config.IsHealFocusFallback then return focusOutput end
@@ -77,7 +77,10 @@ function heal:Cast(elixir)
                 elixir:DebugPrintf("found group heal at gem %d will cast on %d (%d total allies need heal)", i, spawnID, spawnCount)
                 isCasted, lastCastOutput = heal:CastGem(elixir, spawnID, i)
                 elixir.Gems[i].Output = " heal ai: " .. lastCastOutput
-                if isCasted then return lastCastOutput end
+                if elixir.IsHealNormalSoundValid then
+                    mq.cmdf("/beep %s\\elixir\\%s", mq.configDir, elixir.Config.HealNormalSound)
+                end
+                return lastCastOutput
             end
         end
     end
@@ -91,7 +94,12 @@ function heal:Cast(elixir)
             elixir:DebugPrintf("found heal at gem %d will cast on %d", i, spawnID)
             isCasted, lastCastOutput = heal:CastGem(elixir, spawnID, i)
             elixir.Gems[i].Output = " heal ai: " .. lastCastOutput
-            if isCasted then return lastCastOutput end
+            if isCasted then
+                if elixir.IsHealNormalSoundValid then
+                    mq.cmdf("/beep %s/elixir/%s", mq.configDir, elixir.Config.HealNormalSound)
+                end
+                return lastCastOutput
+            end
         end
     end
     return lastCastOutput
@@ -151,6 +159,9 @@ function heal:FocusCast(elixir)
                     elixir.Gems[i].Output = " heal ai: " .. lastCastOutput
                 end
                 self:snapshotAlliesPctHPs()
+                if elixir.IsHealNormalSoundValid then
+                    mq.cmdf("/beep %s/elixir/%s", mq.configDir, elixir.Config.HealNormalSound)
+                end
                 return isCasted, lastCastOutput
             end
         end
@@ -202,6 +213,9 @@ function heal:EmergencyCast(elixir, spawnID)
                         -- only append heal ai logic from focus if the fallback flag is disabled
                         elixir.Gems[i].Output = " heal ai: " .. lastCastOutput
                     end
+                    if elixir.IsHealEmergencySoundValid then
+                        mq.cmdf("/beep %s/elixir/%s", mq.configDir, elixir.Config.HealEmergencySound)
+                    end
                     return isCasted, lastCastOutput
                 end
             end
@@ -226,7 +240,11 @@ function heal:CastGem(elixir, targetSpawnID, gemIndex)
     self.healCooldown = mq.gettime() + 1000
     elixir.LastActionOutput = string.format("heal ai casting %s on %s", spell.Name(), mq.TLO.Spawn(targetSpawnID).Name())
     elixir.isActionCompleted = true
-    mq.cmd(string.format("/casting \"%s\" -targetid|%d -maxtries|2", spell.Name(), targetSpawnID))
+    if not mq.TLO.Target() or mq.TLO.Target.ID() ~= targetSpawnID then
+        mq.cmdf('/target id %d', targetSpawnID)
+    end
+    mq.cmdf("/cast %d", gemIndex)
+    --mq.cmd(string.format("/casting \"%s\" -targetid|%d -maxtries|2", spell.Name(), targetSpawnID))    
     --mq.delay(5000, WaitOnCasting)
     return true, elixir.LastActionOutput
 end

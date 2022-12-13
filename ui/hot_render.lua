@@ -24,7 +24,38 @@ local function elixirRender()
     
     ImGui.BeginDisabled(not elixir.Config.IsHotAI)
 
-    ImGui.SliderInt("Hot Normal %", elixir.Config.HotPctNormal, 1, 99)
+    ImGui.PushItemWidth(100)
+    local isNewSliderValue, isSliderChanged = ImGui.SliderInt("Normal Threshold", elixir.Config.HotPctNormal, 1, 99, "%d%% HP")
+    if isSliderChanged then
+        isChanged = true
+        elixir.Config.HotPctNormal = isNewSliderValue
+    end
+    ImGui.SameLine()
+    HelpMarker("Use normal heals on allies when they meet this threshold")
+
+    if not elixir.HotAI.IsHotNormalSoundValid then
+        ImGui.PushStyleColor(ImGuiCol.Text, 0.8, 0.28, 0.28, 1)
+    end    
+    local isNewTextValue, isTextChanged = ImGui.InputText("Normal Alert", elixir.Config.HotNormalSound)
+    if not elixir.HotAI.IsHotNormalSoundValid then
+        ImGui.PopStyleColor(1)
+    end
+    if isTextChanged then
+        isChanged = true
+        elixir.Config.HotNormalSound = isNewTextValue
+        local f = io.open(string.format("%s/elixir/%s.wav", elixir.ConfigPath, elixir.Config.HotNormalSound))
+        print(string.format("%s/elixir/%s.wav", elixir.ConfigPath, elixir.Config.HotNormalSound))
+        if f ~= nil then
+            elixir.HotAI.IsHotNormalSoundValid = true
+            io.close(f)
+        else
+            elixir.HotAI.IsHotNormalSoundValid = false
+        end
+    end
+    ImGui.SameLine()
+    HelpMarker(string.format("Attempt to use provided alert when a heal is casted. Place a wav in %s\\elixir\\ and type just the base filename in the field", elixir.ConfigPath))
+
+
 
     isNewCheckboxValue, isCheckboxChanged = ImGui.Checkbox("Hot Pets", elixir.Config.IsHotPets)
     if isCheckboxChanged then

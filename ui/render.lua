@@ -50,12 +50,12 @@ elements[stunElement.Index] = stunElement
 elements[targetElement.Index] = targetElement
 
 function SettingsRender()
-    if not elixir.Config.IsElixirUIOpen then return end
+    if not elixir.Config.IsElixirSettingsUIOpen then return end
     if not elixir.IsInGame then return end
-    local isOpen, shouldDraw = ImGui.Begin('\xef\x83\xba Elixir '.. elixir.Version .. " Settings", elixir.Config.IsElixirUIOpen)
+    local isOpen, shouldDraw = ImGui.Begin('\xef\x83\xba Elixir '.. elixir.Version .. " Settings", elixir.Config.IsElixirSettingsUIOpen)
     ImGui.SetWindowSize(430, 277, ImGuiCond.FirstUseEver)
     if not isOpen then
-        elixir.Config.IsElixirUIOpen = false
+        elixir.Config.IsElixirSettingsUIOpen = false
         ImGui.End()
         return
     end
@@ -139,7 +139,7 @@ function OverlayRender(isOpen)
         ImGui.SetCursorPos(1,6)
         if ImGui.InvisibleButton("settings", ICON_WIDTH, ICON_HEIGHT-6) then
             elixir.SettingsTabIndex = 0
-            if not elixir.Config.IsElixirUIOpen then elixir.Config.IsElixirUIOpen = true end
+            if not elixir.Config.IsElixirSettingsUIOpen then elixir.Config.IsElixirSettingsUIOpen = true end
         end
 
         
@@ -166,7 +166,7 @@ function OverlayRender(isOpen)
             windowHeight = windowHeight + 20
             if ImGui.InvisibleButton("heal", ICON_WIDTH, 20) then
                 elixir.SettingsTabIndex = healElement.Index
-                if not elixir.Config.IsElixirUIOpen then elixir.Config.IsElixirUIOpen = true end
+                if not elixir.Config.IsElixirSettingsUIOpen then elixir.Config.IsElixirSettingsUIOpen = true end
             end
             ImGui.SetCursorPos(lastX, lastY)
             ImGui.NewLine()
@@ -187,7 +187,7 @@ function OverlayRender(isOpen)
             windowHeight = windowHeight + 20
             if ImGui.InvisibleButton("stun", ICON_WIDTH, 20) then
                 elixir.SettingsTabIndex = stunElement.Index
-                if not elixir.Config.IsElixirUIOpen then elixir.Config.IsElixirUIOpen = true end
+                if not elixir.Config.IsElixirSettingsUIOpen then elixir.Config.IsElixirSettingsUIOpen = true end
             end
             ImGui.SetCursorPos(lastX, lastY)
             ImGui.NewLine()
@@ -202,7 +202,7 @@ function OverlayRender(isOpen)
             windowHeight = windowHeight + 20
             if ImGui.InvisibleButton("charm", ICON_WIDTH, 20) then
                 elixir.SettingsTabIndex = charmElement.Index
-                if not elixir.Config.IsElixirUIOpen then elixir.Config.IsElixirUIOpen = true end
+                if not elixir.Config.IsElixirSettingsUIOpen then elixir.Config.IsElixirSettingsUIOpen = true end
             end
             ImGui.SetCursorPos(lastX, lastY)
             ImGui.NewLine()
@@ -217,7 +217,7 @@ function OverlayRender(isOpen)
             windowHeight = windowHeight + 20
             if ImGui.InvisibleButton("hot", ICON_WIDTH, 20) then
                 elixir.SettingsTabIndex = hotElement.Index
-                if not elixir.Config.IsElixirUIOpen then elixir.Config.IsElixirUIOpen = true end
+                if not elixir.Config.IsElixirSettingsUIOpen then elixir.Config.IsElixirSettingsUIOpen = true end
             end
             ImGui.SetCursorPos(lastX, lastY)
             ImGui.NewLine()
@@ -232,7 +232,7 @@ function OverlayRender(isOpen)
             windowHeight = windowHeight + 20
             if ImGui.InvisibleButton("mez", ICON_WIDTH, 20) then
                 elixir.SettingsTabIndex = mezElement.Index
-                if not elixir.Config.IsElixirUIOpen then elixir.Config.IsElixirUIOpen = true end
+                if not elixir.Config.IsElixirSettingsUIOpen then elixir.Config.IsElixirSettingsUIOpen = true end
             end
             ImGui.SetCursorPos(lastX, lastY)
             ImGui.NewLine()
@@ -247,7 +247,7 @@ function OverlayRender(isOpen)
             windowHeight = windowHeight + 20
             if ImGui.InvisibleButton("target", ICON_WIDTH, 20) then
                 elixir.SettingsTabIndex = targetElement.Index
-                if not elixir.Config.IsElixirUIOpen then elixir.Config.IsElixirUIOpen = true end
+                if not elixir.Config.IsElixirSettingsUIOpen then elixir.Config.IsElixirSettingsUIOpen = true end
             end
             ImGui.SetCursorPos(lastX, lastY)
             ImGui.NewLine()
@@ -263,7 +263,7 @@ function OverlayRender(isOpen)
             windowHeight = windowHeight + 20
             if ImGui.InvisibleButton("debuff", ICON_WIDTH, 20) then
                 elixir.SettingsTabIndex = debuffElement.Index
-                if not elixir.Config.IsElixirUIOpen then elixir.Config.IsElixirUIOpen = true end
+                if not elixir.Config.IsElixirSettingsUIOpen then elixir.Config.IsElixirSettingsUIOpen = true end
             end
             ImGui.SetCursorPos(lastX, lastY)
             ImGui.NewLine()
@@ -278,7 +278,7 @@ function OverlayRender(isOpen)
             windowHeight = windowHeight + 20
             if ImGui.InvisibleButton("dot", ICON_WIDTH, 20) then
                 elixir.SettingsTabIndex = dotElement.Index
-                if not elixir.Config.IsElixirUIOpen then elixir.Config.IsElixirUIOpen = true end
+                if not elixir.Config.IsElixirSettingsUIOpen then elixir.Config.IsElixirSettingsUIOpen = true end
             end
             ImGui.SetCursorPos(lastX, lastY)
             ImGui.NewLine()
@@ -293,7 +293,7 @@ function OverlayRender(isOpen)
             windowHeight = windowHeight + 20
             if ImGui.InvisibleButton("nuke", ICON_WIDTH, 20) then
                 elixir.SettingsTabIndex = nukeElement.Index
-                if not elixir.Config.IsElixirUIOpen then elixir.Config.IsElixirUIOpen = true end
+                if not elixir.Config.IsElixirSettingsUIOpen then elixir.Config.IsElixirSettingsUIOpen = true end
             end
             ImGui.SetCursorPos(lastX, lastY)
             ImGui.NewLine()
@@ -308,7 +308,7 @@ function OverlayRender(isOpen)
             windowHeight = windowHeight + 20
             if ImGui.InvisibleButton("buff", ICON_WIDTH, 20) then
                 elixir.SettingsTabIndex = buffElement.Index
-                if not elixir.Config.IsElixirUIOpen then elixir.Config.IsElixirUIOpen = true end
+                if not elixir.Config.IsElixirSettingsUIOpen then elixir.Config.IsElixirSettingsUIOpen = true end
             end
             ImGui.SetCursorPos(lastX, lastY)
             ImGui.NewLine()
@@ -323,7 +323,7 @@ function OverlayRender(isOpen)
             windowHeight = windowHeight + 20
             if ImGui.InvisibleButton("move", ICON_WIDTH, 20) then
                 elixir.SettingsTabIndex = moveElement.Index
-                if not elixir.Config.IsElixirUIOpen then elixir.Config.IsElixirUIOpen = true end
+                if not elixir.Config.IsElixirSettingsUIOpen then elixir.Config.IsElixirSettingsUIOpen = true end
             end
             ImGui.SetCursorPos(lastX, lastY)
             ImGui.NewLine()
@@ -338,7 +338,7 @@ function OverlayRender(isOpen)
             windowHeight = windowHeight + 20
             if ImGui.InvisibleButton("archery", ICON_WIDTH, 20) then
                 elixir.SettingsTabIndex = archeryElement.Index
-                if not elixir.Config.IsElixirUIOpen then elixir.Config.IsElixirUIOpen = true end
+                if not elixir.Config.IsElixirSettingsUIOpen then elixir.Config.IsElixirSettingsUIOpen = true end
             end
             ImGui.SetCursorPos(lastX, lastY)
             ImGui.NewLine()
@@ -353,7 +353,7 @@ function OverlayRender(isOpen)
             windowHeight = windowHeight + 20
             if ImGui.InvisibleButton("attack", ICON_WIDTH, 20) then
                 elixir.SettingsTabIndex = attackElement.Index
-                if not elixir.Config.IsElixirUIOpen then elixir.Config.IsElixirUIOpen = true end
+                if not elixir.Config.IsElixirSettingsUIOpen then elixir.Config.IsElixirSettingsUIOpen = true end
             end
             ImGui.SetCursorPos(lastX, lastY)
             ImGui.NewLine()
@@ -368,7 +368,7 @@ function OverlayRender(isOpen)
             windowHeight = windowHeight + 20
             if ImGui.InvisibleButton("meditate", ICON_WIDTH, 20) then
                 elixir.SettingsTabIndex = meditateElement.Index
-                if not elixir.Config.IsElixirUIOpen then elixir.Config.IsElixirUIOpen = true end
+                if not elixir.Config.IsElixirSettingsUIOpen then elixir.Config.IsElixirSettingsUIOpen = true end
             end
             ImGui.SetCursorPos(lastX, lastY)
             ImGui.NewLine()
@@ -388,20 +388,19 @@ function OverlayRender(isOpen)
         if windowHeight ~= elixir.LastOverlayWindowHeight then
             ImGui.SetWindowSize(42, windowHeight)
             elixir.LastOverlayWindowHeight = windowHeight
-            print("height changed to " .. windowHeight)
         end
 
         if ImGui.BeginPopupContextWindow() then
             if ImGui.MenuItem("Elixir Settings") then
                 elixir.SettingsTabIndex = 0
-                if not elixir.Config.IsElixirUIOpen then
-                    elixir.Config.IsElixirUIOpen = true
+                if not elixir.Config.IsElixirSettingsUIOpen then
+                    elixir.Config.IsElixirSettingsUIOpen = true
                 end
             end
             if ImGui.MenuItem("Heal AI Settings") then
                 elixir.SettingsTabIndex = 1
-                if not elixir.Config.IsElixirUIOpen then
-                    elixir.Config.IsElixirUIOpen = true
+                if not elixir.Config.IsElixirSettingsUIOpen then
+                    elixir.Config.IsElixirSettingsUIOpen = true
                 end
             end
             ImGui.Separator()

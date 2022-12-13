@@ -14,6 +14,7 @@ function MostHurtAlly(threshold)
         spawnPctHPs = mq.TLO.Me.PctHPs()
         finalSpawnID = mq.TLO.Me.ID()
     end
+
     if mq.TLO.Group.GroupSize() then
         for i = 0, mq.TLO.Group.Members() do
             local pG = mq.TLO.Group.Member(i)
@@ -21,7 +22,7 @@ function MostHurtAlly(threshold)
             pG.Present() and
             pG.Type() ~= "CORPSE" and
             pG.Distance() < 200 and
-            not pG.Offline() then      
+            not pG.Offline() then
                 local pSpawn = pG.Spawn
                 if elixir.Config.IsHealPets and
                 pSpawn() and
@@ -33,11 +34,11 @@ function MostHurtAlly(threshold)
                         spawnPctHPs = pSpawn.Pet.PctHPs()
                         finalSpawnID = pSpawn.Pet.ID()
                     end
-                    if pSpawn() and pSpawn.PctHPs() < threshold then spawnCount = spawnCount + 1 end
-                    if pSpawn() and pSpawn.PctHPs() < spawnPctHPs then
-                        spawnPctHPs = pSpawn.PctHPs()
-                        finalSpawnID = pSpawn.ID()
-                    end
+                end
+                if pSpawn() and pSpawn.PctHPs() < threshold then spawnCount = spawnCount + 1 end
+                if pSpawn() and pSpawn.PctHPs() < spawnPctHPs then
+                    spawnPctHPs = pSpawn.PctHPs()
+                    finalSpawnID = pSpawn.ID()
                 end
             end
         end
@@ -59,11 +60,11 @@ function MostHurtAlly(threshold)
                         spawnPctHPs = pSpawn.Pet.PctHPs()
                         finalSpawnID = pSpawn.Pet.ID()
                     end
-                    if pSpawn.PctHPs() < threshold then spawnCount = spawnCount + 1 end
-                    if pSpawn.PctHPs() < spawnPctHPs then
-                        spawnPctHPs = pSpawn.PctHPs()
-                        finalSpawnID = pSpawn.ID()
-                    end
+                end
+                if pSpawn.PctHPs() < threshold then spawnCount = spawnCount + 1 end
+                if pSpawn.PctHPs() < spawnPctHPs then
+                    spawnPctHPs = pSpawn.PctHPs()
+                    finalSpawnID = pSpawn.ID()
                 end
             end
         end

@@ -6,9 +6,9 @@ require('logic')
 ---@class hot
 ---@field public Output string # AI Debug String
 ---@field private hotCooldown number # cooldown timer to use hot
----@field private spawnSnapshot number[] # snapshot of spawn hots for predictive heal over time casting
+---@field private spawnHotSnapshot number[] # snapshot of spawns that have hots on them and when to reuse
 hot = {
-    spawnSnapshot = {},
+    spawnHotSnapshot = {},
     Output = '',
     hotCooldown = 0,
 }
@@ -40,29 +40,41 @@ function hot:Cast(elixir)
     if spawn.PctHPs() > elixir.Config.HotPctNormal then return "no one is hurt enough yet, most hurt is "..spawn.Name().." at "..spawn.PctHPs().."%" end
     
     local isCasted = false
-    local lastCastOutput = "no hots found"
+    local lastCastOutput = "no heal over times found"
     
     if spawnCount > 2 then
         for i = 1, mq.TLO.Me.NumGems() do
             if elixir.Gems[i].Tag.IsHot and
                 elixir.Gems[i].Tag.IsGroupSpell and
-                not spawn.Buff(elixir.Gems[i].SpellName).ID() and
-                spawn.Buff(elixir.Gems[i].SpellName).Stacks() and
+                self.spawnHotSnapshot[spawnID] < mq.gettime() and
                 not elixir.Gems[i].IsIgnored then
                 
                 elixir:DebugPrintf("found group hot at gem %d will cast on %d", i, spawnID)
                 isCasted, lastCastOutput = hot:CastGem(elixir, spawnID, i)
                 elixir.Gems[i].Output = " hot ai: " .. lastCastOutput
-                if isCasted then return lastCastOutput end
+                if isCasted then
+                    if mq.TLO.Group.GroupSize() then
+                        for j = 0, mq.TLO.Group.Members() do
+                            local pG = mq.TLO.Group.Member(j)
+                            if pG() and
+                            pG.Present() and
+                            pG.Type() ~= "CORPSE" and
+                            pG.Distance() < 200 and
+                            not pG.Offline() then
+                                self.spawnHotSnapshot[pG.ID] = mq.gettime()+32000                      
+                            end
+                        end
+                    end
+                    return lastCastOutput
+                end
             end
         end
     end
     for i = 1, mq.TLO.Me.NumGems() do
         if elixir.Gems[i].Tag.IsHot and
-            not spawn.Buff(elixir.Gems[i].SpellName).ID() and
-            spawn.Buff(elixir.Gems[i].SpellName).Stacks() and
-            not elixir.Gems[i].IsIgnored then
-
+        not elixir.Gems[i].Tag.IsGroupSpell and
+        (not self.spawnHotSnapshot[spawnID] or self.spawnHotSnapshot[spawnID] < mq.gettime()) and
+        not elixir.Gems[i].IsIgnored then
             elixir:DebugPrintf("found hot at gem %d will cast on %d", i, spawnID)
             isCasted, lastCastOutput = hot:CastGem(elixir, spawnID, i)
             elixir.Gems[i].Output = " hot ai: " .. lastCastOutput
@@ -84,11 +96,13 @@ function hot:FocusCast(elixir)
 
     local spawnID = spawn.ID()
     local isCasted = false
-    local lastCastOutput = "no hoting ability found"
+    local lastCastOutput = "no heal over times found"
 
     for i = 1, mq.TLO.Me.NumGems() do
         if elixir.Gems[i].Tag.IsHot and
             not elixir.Gems[i].IsIgnored and
+            not elixir.Gems[i].Tag.IsGroupSpell and
+            (not self.spawnHotSnapshot[spawnID] or self.spawnHotSnapshot[spawnID] < mq.gettime()) and
             (elixir.Config.HotFocusSpellID == elixir.Gems[i].SpellID or
             elixir.Config.HotFocusSpellID == 0)
             then
@@ -123,6 +137,7 @@ function hot:CastGem(elixir, targetSpawnID, gemIndex)
     elixir.LastActionOutput = string.format("hot ai casting %s on %s", spell.Name(), mq.TLO.Spawn(targetSpawnID).Name())
     elixir.isActionCompleted = true
     mq.cmd(string.format("/casting \"%s\" -targetid|%d -maxtries|2", spell.Name(), targetSpawnID))
+    self.spawnHotSnapshot[targetSpawnID] = mq.gettime() + 32000
     --mq.delay(5000, WaitOnCasting)
     return true, elixir.LastActionOutput
 end

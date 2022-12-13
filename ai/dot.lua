@@ -38,7 +38,6 @@ function dot:Cast(elixir)
     end
 
     for i = 1, mq.TLO.Me.NumGems() do
-        if i == 4 then print(string.format("gem %d is a dot? %s", i, elixir.Gems[i].Tag.DamageAmount)) end        
         if elixir.Gems[i].Tag.IsDot and
             not elixir.Gems[i].IsIgnored then
             isCasted, lastCastOutput = dot:CastGem(elixir, spawn.ID(), i)

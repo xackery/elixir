@@ -41,7 +41,8 @@ local mq = require('mq')
 ---@field Targets number
 ---@field TargetType number
 ---@field Skill number
-SpellTag = {}
+SpellTag = {
+}
 
 --- local cache of existing spells
 local spellTagCache = {}
@@ -52,6 +53,7 @@ local spellTagCache = {}
 local function initializeSpellTag(spellID)
     local spellTag = {
         StunDuration = 0,
+        IsHot = false,
         IsDot = false,
     } ---@type SpellTag
 
@@ -87,7 +89,7 @@ local function initializeSpellTag(spellID)
             
             if base < 0 then
                 if currentSpell.Duration.Ticks() > 0 then
-                    spellTag.IsDoT = true
+                    spellTag.IsDot = true
                 else
                     spellTag.IsNuke = true
                 end
@@ -1776,7 +1778,7 @@ local function initializeSpellTag(spellID)
     if spellTag.IsDebuff and spellTag.DamageAmount and spellTag.DamageAmount > 0 then
         spellTag.IsDebuff = false
         if currentSpell.Duration.Ticks() > 0 then
-            spellTag.IsDoT = true
+            spellTag.IsDot = true
         else
             spellTag.IsNuke = true
         end

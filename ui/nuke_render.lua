@@ -23,7 +23,23 @@ local function nukeRender()
 
     ImGui.BeginDisabled(not elixir.Config.IsNukeAI)
 
-    -- TODO: nukepctnormal
+    ImGui.PushItemWidth(100)
+    local isNewSliderValue, isSliderChanged = ImGui.SliderInt("Start At", elixir.Config.NukePctNormal, 1, 99, "%d%% HP")
+    if isSliderChanged then
+        isChanged = true
+        elixir.Config.elixir.Config.NukePctNormal = isNewSliderValue
+    end
+    ImGui.SameLine()
+    HelpMarker("Wait until target has at least the threshold in hitpoints before nuking")
+
+    ImGui.PushItemWidth(100)
+    local isNewSliderValue, isSliderChanged = ImGui.SliderInt("Until I Have", elixir.Config.NukePctMinMana, 1, 99, "%d%% Mana")
+    if isSliderChanged then
+        isChanged = true
+        elixir.Config.elixir.Config.NukePctNormal = isNewSliderValue
+    end
+    ImGui.SameLine()
+    HelpMarker("Stop nuking when you hit the limit")
 
     isNewCheckboxValue, isCheckboxChanged = ImGui.Checkbox("Subtle Casting", elixir.Config.IsNukeSubtleCasting)
     if isCheckboxChanged then

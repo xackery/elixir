@@ -26,6 +26,7 @@ local Version = "v0.5.5"
 ---@field public IsActionCompleted boolean # Has an action completed during this update
 ---@field public LastOverlayWindowHeight number # last size of overlay window
 ---@field public IsTankInParty boolean # Is there a tank class in the group or raid, used for subtle checks
+---@field public ConfigPath string # Config path, alias of mq.configDir
 ---@field private lastZoneID number # Last Zone ID snapshotted on update
 elixir = {
     LastActionOutput = '',
@@ -48,7 +49,7 @@ elixir = {
     ZoneCooldown = 0,
     IsActionCompleted = false,
     lastZoneID = 0,
-    SettingsTabIndex = 10,
+    SettingsTabIndex = 16,
     LastOverlayWindowHeight = 0,
     IsTankInParty = false,
 }
@@ -58,7 +59,7 @@ elixir = {
 ---@field public IsElixirAI boolean # is elixir running
 ---@field public IsElixirOverlayUI boolean # is elixir overlay enabled
 ---@field public IsElixirDisabledOnFocus boolean # should elixir not run if focused
----@field public IsElixirUIOpen boolean # Is the Elixir UI open
+---@field public IsElixirSettingsUIOpen boolean # Is the Elixir UI open
 ---@field public IsDebugEnabled boolean # Is debugging info enabled
 ---@field public IsDebugVerboseEnabled boolean # Is echoing out verbose debugging enabled
 ---Heal AI
@@ -68,6 +69,8 @@ elixir = {
 ---@field public IsHealRaid boolean # Is Raid Healing enabled
 ---@field public IsHealXTarget boolean # Is XTarget Healing enabled
 ---@field public HealPctNormal number # If set, Heal AI will try healing a target when at pct with normal heal
+---@field public HealNormalSound string # sound to play on normal heal alert
+---@field public HealEmergencySound string # sound to play on normal heal alert
 ---@field public IsHealEmergencyAllowed boolean  # If set, Heal AI will try use emergeny heals
 ---@field public HealPctEmergency number # If set, Heal AI will try healing a target when at pct with emergency heal
 ---@field public IsHealFocus boolean  # If set, Heal AI try to heal a focus target
@@ -84,6 +87,7 @@ elixir = {
 ---@field public IsHotRaid boolean # Is Raid heal over times enabled
 ---@field public IsHotXTarget boolean # Is XTarget heal over times enabled
 ---@field public HotPctNormal number # If set, Hot AI will try heal over times a target when at pct with normal hot
+---@field public HotNormalSound string # sound to play on normal heal alert
 ---@field public HotFocusName string # If set, Hot AI will focus on provided spawn name
 ---@field public HotFocusSpellID number # If set, Hot AI will focus on provided spell ID on focus ID
 ---@field public HotFocusPctNormal number # If set, Hot AI will focus on heal over times a target with pct normal hot
@@ -145,6 +149,7 @@ elixir = {
 ---Nuke AI
 ---@field public IsNukeAI boolean # Is Nuke AI enabled
 ---@field public NukePctNormal number # % to nuke normal
+---@field public NukePctMinMana number # Minimum mana to be able to nuke
 ---@field public IsNukeSubtleCasting boolean # Is Nuking a subtle casting feature
 ---Debuff AI
 ---@field public IsDebuffAI boolean # Is Debuff AI enabled
@@ -162,6 +167,7 @@ elixir.Config = {
     IsInGame = false,
     IsElixirOverlayUI = true,
     IsElixirDisabledOnFocus = false,
+    IsElixirSettingsUIOpen = true,
     IsHealAI = true,
     HealPctNormal = 50,
     HealPctEmergency = 30,
@@ -170,17 +176,19 @@ elixir.Config = {
     HealFocusPctNormal = 50,
     HealFocusPctEmergency = 30,
     IsHealFocusEmergencyAllowed = false,
-    IsHealEmergencyAllowed = false,
-    IsHealEmergencyPredictive = false,
+    IsHealEmergencyAllowed = true,
+    IsHealEmergencyPredictive = true,
     IsHealFocusEmergencyPredictive = false,
     IsHealFocusFallback = false,
-    IsHealRaid = false,
+    HealNormalSound = '',
+    HealEmergencySound = '',
+    IsHealRaid = true,
     IsHealPets = true,
     IsHealXTarget = true,
     IsHotAI = true,
-    HotPctNormal = 50,
-    IsStunAI = true,
-    IsElixirUIOpen = true,
+    HotNormalSound = '',
+    HotPctNormal = 70,
+    IsStunAI = false,
     IsDebugEnabled = true,
     IsMeditateAI = true,
     IsArcheryAI = false,
@@ -200,20 +208,21 @@ elixir.Config = {
     MoveToCampX = 0,
     MoveToCampY = 0,
     MoveToCampZ = 0,
-    IsCharmAI = true,
-    IsTargetAI = true,
+    IsCharmAI = false,
+    IsTargetAI = false,
     IsTargetPetAssist = true,
     TargetMinRange = 40,
     IsBuffAI = false,
     BuffPctNormal = 95,
     IsBuffSubtleCasting = true,
-    IsDotAI = true,
+    IsDotAI = false,
     DotPctNormal = 95,
     IsDotSubtleCasting = true,
-    IsNukeAI = true,
+    IsNukeAI = false,
     NukePctNormal = 95,
+    NukePctMinMana = 50,
     IsNukeSubtleCasting = true,
-    IsDebuffAI = true,
+    IsDebuffAI = false,
     DebuffPctNormal = 95,
     IsDebuffSubtleCasting = true,
     IsDebuffFearKiting = true,
@@ -234,7 +243,6 @@ elixir.Config = {
     IsGem12Ignored = false,
     IsGem13Ignored = false,
 }
-
 
 ---@class Gem
 ---@field SpellID number # Which spell ID is memorized to this gem, used for checking on change
@@ -374,12 +382,69 @@ function elixir:Initialize()
     --loadConfig()
     --sanitizeConfig()
 
+    
+    self.ConfigPath = mq.configDir
     for i = 1, mq.TLO.Me.NumGems() do
         self.Gems[i] = Gem.new()
     end
 
     self.MaxGemCount = mq.TLO.Me.NumGems()
     self.LastActionOutput = ''
+    if mq.TLO.Me.Class.ShortName() == "CLR" then
+        print(mq.TLO.Me.Class.Name() .. " Mode Settings")
+        elixir.Config.IsHealAI = true
+        elixir.Config.HealNormalSound = 'heal'
+        elixir.Config.IsHotAI = true
+        elixir.Config.IsDebuffAI = true
+        elixir.Config.IsDebuffSubtleCasting = true
+        elixir.Config.IsNukeAI = true
+        elixir.Config.IsNukeSubtleCasting = true
+        elixir.Config.NukePctMinMana = 80
+        elixir.Config.IsMeditateAI = true
+        elixir.Config.IsMeditateDuringCombat = true
+        elixir.Config.IsMeditateSubtle = true
+        elixir.Config.IsTargetAI = true
+    end    
+    if mq.TLO.Me.Class.ShortName() == "ENC" then
+        print(mq.TLO.Me.Class.Name() .. " Mode Settings")
+        elixir.Config.IsHealAI = false
+        elixir.Config.IsHotAI = false
+        elixir.Config.IsDotAI = false
+        elixir.Config.IsDotSubtleCasting = false
+        elixir.Config.IsDebuffAI = true
+        elixir.Config.IsDebuffSubtleCasting = false
+        elixir.Config.IsNukeAI = true
+        elixir.Config.IsNukeSubtleCasting = false
+        elixir.Config.NukePctMinMana = 20
+        elixir.Config.IsMeditateAI = true
+        elixir.Config.IsMeditateDuringCombat = true
+        elixir.Config.IsMeditateSubtle = true
+        elixir.Config.IsTargetAI = true
+    end
+
+    local f = io.open(string.format("%s/elixir/%s.wav", mq.configDir, elixir.Config.HealNormalSound))
+    if f ~= nil then
+        elixir.HealAI.IsHealNormalSoundValid = true
+        io.close(f)
+    else
+        elixir.HealAI.IsHealNormalSoundValid = false
+    end
+
+    f = io.open(string.format("%s/elixir/%s.wav", mq.configDir, elixir.Config.HotNormalSound))
+    if f ~= nil then
+        elixir.HotAI.IsHotNormalSoundValid = true
+        io.close(f)
+    else
+        elixir.HotAI.IsHotNormalSoundValid = false
+    end
+
+    f = io.open(string.format("%s/elixir/%s.wav", mq.configDir, elixir.Config.HealEmergencySound))
+    if f ~= nil then
+        elixir.HealAI.IsHealEmergencySoundValid = true
+        io.close(f)
+    else
+        elixir.HealAI.IsHealEmergencySoundValid = false
+    end
 end
 
 --- Reset will reset all strings for each update

@@ -63,7 +63,7 @@ function buff:CastGem(elixir, targetSpawnID, gemIndex)
     if spell.Mana() > mq.TLO.Me.CurrentMana() then return false, "not enough mana (" .. mq.TLO.Me.CurrentMana() .. "/" .. spell.Mana() .. ")" end
     if mq.TLO.Target.Buff(spell.Name()).ID() then return false, "target already has "..spell.Name().." on them" end
     if mq.TLO.Spawn(targetSpawnID).Distance() > spell.Range() then return false, "target too far away" end
-
+    
     if spellTag.IsSlow and mq.TLO.Target.Slowed.ID() then
         if mq.TLO.Target.Slowed.SlowPct() >= spell.SlowPct() then return false, string.format("target already slowed %d%%", mq.TLO.Target.Slowed.SlowPct()) end
         --TODO: immune to slow check
