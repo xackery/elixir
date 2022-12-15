@@ -59,8 +59,8 @@ function nuke:CastGem(elixir, targetSpawnID, gemIndex)
     if not mq.TLO.Me.SpellReady(gemIndex)() then return false, spell.Name().." not ready" end
     if not spell() then return false, "no spell found" end
     if spell.Mana() > mq.TLO.Me.CurrentMana() then return false, "not enough mana (" .. mq.TLO.Me.CurrentMana() .. "/" .. spell.Mana() .. ")" end
-    if mq.TLO.Spawn(targetSpawnID).Distance() > spell.Range() then return false, "target too far away" end
-
+    if mq.TLO.Spawn(targetSpawnID).Distance() > spell.Range() then return false, "target too far away" end 
+    if not IsTargetValidBodyType(elixir.Gems[gemIndex].Tag) then return false, "invalid target body type" end
     self.nukeCooldown = mq.gettime() + 1000
     elixir.LastActionOutput = string.format("casting %s on %s", spell.Name(), mq.TLO.Spawn(targetSpawnID).Name())
     elixir.isActionCompleted = true

@@ -65,7 +65,7 @@ function dot:CastGem(elixir, targetSpawnID, gemIndex)
     if not spell.StacksTarget() then return false, "debuff won't stack on target" end
     if mq.TLO.Target.Buff(spell.Name()).ID() then return false, "target already has "..spell.Name().." on them" end
     if mq.TLO.Spawn(targetSpawnID).Distance() > spell.Range() then return false, "target too far away" end
-
+    if not IsTargetValidBodyType(elixir.Gems[gemIndex].Tag) then return false, "invalid target body type" end
     if spellTag.IsSlow and mq.TLO.Target.Slowed.ID() then
         if mq.TLO.Target.Slowed.SlowPct() >= spell.SlowPct() then return false, string.format("target already slowed %d%%", mq.TLO.Target.Slowed.SlowPct()) end
         --TODO: immune to slow check

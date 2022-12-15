@@ -69,11 +69,11 @@ function debuff:CastGem(elixir, targetSpawnID, gemIndex)
     local spell = mq.TLO.Me.Gem(gemIndex)
     if not mq.TLO.Me.SpellReady(gemIndex)() then return false, spell.Name().." not ready" end
     if not spell() then return false, "no spell found" end    
+    if not IsTargetValidBodyType(elixir.Gems[gemIndex].Tag) then return false, "invalid target body type" end
     if spell.Mana() > mq.TLO.Me.CurrentMana() then return false, "not enough mana (" .. mq.TLO.Me.CurrentMana() .. "/" .. spell.Mana() .. ")" end    
     if not spell.StacksTarget() then return false, "debuff won't stack on target" end
     if mq.TLO.Target.Buff(spell.Name()).ID() then return false, "target already has "..spell.Name().." on them" end
     if mq.TLO.Spawn(targetSpawnID).Distance() > spell.Range() then return false, "target too far away" end
-
     if spellTag.IsFear and not mq.TLO.Target.Snared.ID() then
         if not elixir.Config.IsDebuffFearKiting then return false, "no fear kiting allowed" end
         if not elixir.Config.IsDebuffNoSnareFearKiting then return false, "no fear kiting using "..spell.Name().." without snare allowed" end
