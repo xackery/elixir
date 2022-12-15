@@ -23,6 +23,106 @@ local function elixirRender()
     HelpMarker("Enable Heal AI. This enables all healing logic globally")
     
     ImGui.BeginDisabled(not elixir.Config.IsHealAI)
+    
+    isNewCheckboxValue, isCheckboxChanged = ImGui.Checkbox(element.FocusIcon .. " Focus Healing", elixir.Config.IsHealFocus)
+    if isCheckboxChanged then
+        elixir.Config.IsHealFocus = isNewCheckboxValue
+        isChanged = true
+    end
+    ImGui.SameLine()
+    HelpMarker("When enabled, healing will focus a single spawn that you wish to prioritize over normal healing logic.\nThis is used for cases such as a primary tank needing priority heals while AEs are going off.")
+    
+    --ImGui.BeginDisabled(elixir.Config.IsHealAI and not elixir.Config.IsHealFocus)
+
+    --- TODO: Focus Healing Name
+    --local isNewComboValue, isComboChanged = ImGui.Combo("Focus Target", elixir.Config.HealFocusID, elixir.Allies, #elixir.Allies)
+    ImGui.PushItemWidth(100)
+    if ImGui.BeginCombo("Focus Target", elixir.HealAI.HealFocusName) then
+        for spawnID, name in pairs(elixir.Allies) do
+            local isSelected = elixir.Config.HealFocusID == spawnID
+            if ImGui.Selectable(name, isSelected) then -- fixme: selectable
+                elixir.Config.HealFocusID = spawnID
+                elixir.HealAI.HealFocusName = name
+            end
+
+            -- Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
+            if isSelected then
+                ImGui.SetItemDefaultFocus()
+            end
+        end
+
+        ImGui.EndCombo()
+    end
+    ImGui.SameLine()
+    HelpMarker("Target to heal focus.")
+    
+    ImGui.PushItemWidth(100)
+    local isNewSliderValue, isSliderChanged = ImGui.SliderInt("Focus Normal Threshold", elixir.Config.HealFocusPctNormal, 1, 99, "%d%% HP")
+    if isSliderChanged then
+        isChanged = true
+        elixir.Config.HealFocusPctNormal = isNewSliderValue
+    end
+    ImGui.SameLine()
+    HelpMarker("When focus target hits this threshold, heal them")
+
+    if not elixir.HealAI.IsHealFocusNormalSoundValid then
+        ImGui.PushStyleColor(ImGuiCol.Text, 0.8, 0.28, 0.28, 1)
+    end    
+    local isNewTextValue, isTextChanged = ImGui.InputText("Focus Normal Alert", elixir.Config.HealFocusNormalSound)
+    if not elixir.HealAI.IsHealFocusNormalSoundValid then
+        ImGui.PopStyleColor(1)
+    end
+    if isTextChanged then
+        isChanged = true
+        elixir.Config.HealFocusNormalSound = isNewTextValue
+        local f = io.open(string.format("%s/elixir/%s.wav", elixir.ConfigPath, elixir.Config.HealFocusNormalSound))
+        print(string.format("%s/elixir/%s.wav", elixir.ConfigPath, elixir.Config.HealFocusNormalSound))
+        if f ~= nil then
+            elixir.HealAI.IsHealFocusNormalSoundValid = true
+            io.close(f)
+        else
+            elixir.HealAI.IsHealFocusNormalSoundValid = false
+        end
+    end
+    ImGui.SameLine()
+    HelpMarker(string.format("Attempt to use provided alert when a heal is casted. Place a wav in %s\\elixir\\ and type just the base filename in the field", elixir.ConfigPath))
+
+
+    --- TODO: Focus Healing Spell ID
+
+    isNewCheckboxValue, isCheckboxChanged = ImGui.Checkbox("Focus Emergency Healing", elixir.Config.IsHealFocusEmergencyAllowed)
+    if isCheckboxChanged then
+        elixir.Config.IsHealFocusEmergencyAllowed = isNewCheckboxValue
+        isChanged = true
+    end
+    ImGui.SameLine()
+    HelpMarker("When enabled, try to use emergency heals to try to save a bad situation.\nNote that this will priotize AAs such Divine Arbitration, Celestial Regeneration, and quick casting spells that are not mana efficient to try to save the at risk focused ally.")
+
+    --ImGui.BeginDisabled(elixir.Config.IsHealAI and elixir.Config.IsHealFocus and not elixir.Config.IsHealFocusEmergencyAllowed)
+    
+    --- TODO: Focus Healing Emergency Pct
+
+    isNewCheckboxValue, isCheckboxChanged = ImGui.Checkbox("Focus Predict Emergencies", elixir.Config.IsHealFocusEmergencyPredictive)
+    if isCheckboxChanged then
+        elixir.Config.IsHealFocusEmergencyPredictive = isNewCheckboxValue
+        isChanged = true
+    end
+    ImGui.SameLine()
+    HelpMarker("When enabled, Emergency Healing will also be used in cases an ally takes 40% of max health in a short amount of time, predicting a potential emergency situation, but may cause prematurely healing too.")
+
+    --ImGui.EndDisabled() -- focus emergency heal
+
+    isNewCheckboxValue, isCheckboxChanged = ImGui.Checkbox("Focus Fallback Healing", elixir.Config.IsHealFocusFallback)
+    if isCheckboxChanged then
+        elixir.Config.IsHealFocusFallback = isNewCheckboxValue
+        isChanged = true
+    end
+    ImGui.SameLine()
+    HelpMarker("When enabled, if focus target does not meet requirement to need a heal, fallback to trying to heal other allies.")
+
+    --ImGui.EndDisabled() -- heal focus
+
+    ImGui.Separator()
 
     ImGui.PushItemWidth(100)
     local isNewSliderValue, isSliderChanged = ImGui.SliderInt("Normal Threshold", elixir.Config.HealPctNormal, 1, 99, "%d%% HP")
@@ -54,8 +154,6 @@ local function elixirRender()
     end
     ImGui.SameLine()
     HelpMarker(string.format("Attempt to use provided alert when a heal is casted. Place a wav in %s\\elixir\\ and type just the base filename in the field", elixir.ConfigPath))
-
-    ImGui.Separator()
 
     isNewCheckboxValue, isCheckboxChanged = ImGui.Checkbox("Heal Pets", elixir.Config.IsHealPets)
     if isCheckboxChanged then
@@ -144,51 +242,6 @@ local function elixirRender()
     
     --ImGui.EndDisabled() -- heal emergency
 
-    isNewCheckboxValue, isCheckboxChanged = ImGui.Checkbox(element.FocusIcon .. " Focus Healing", elixir.Config.IsHealFocus)
-    if isCheckboxChanged then
-        elixir.Config.IsHealFocus = isNewCheckboxValue
-        isChanged = true
-    end
-    ImGui.SameLine()
-    HelpMarker("When enabled, healing will focus a single spawn that you wish to prioritize over normal healing logic.\nThis is used for cases such as a primary tank needing priority heals while AEs are going off.")
-    
-    --ImGui.BeginDisabled(elixir.Config.IsHealAI and not elixir.Config.IsHealFocus)
-
-    --- TODO: Focus Healing Name
-    --- TODO: Focus Healing Normal Pct
-    --- TODO: Focus Healing Spell ID
-
-    isNewCheckboxValue, isCheckboxChanged = ImGui.Checkbox("Focus Emergency Healing", elixir.Config.IsHealFocusEmergencyAllowed)
-    if isCheckboxChanged then
-        elixir.Config.IsHealFocusEmergencyAllowed = isNewCheckboxValue
-        isChanged = true
-    end
-    ImGui.SameLine()
-    HelpMarker("When enabled, try to use emergency heals to try to save a bad situation.\nNote that this will priotize AAs such Divine Arbitration, Celestial Regeneration, and quick casting spells that are not mana efficient to try to save the at risk focused ally.")
-
-    --ImGui.BeginDisabled(elixir.Config.IsHealAI and elixir.Config.IsHealFocus and not elixir.Config.IsHealFocusEmergencyAllowed)
-    
-    --- TODO: Focus Healing Emergency Pct
-
-    isNewCheckboxValue, isCheckboxChanged = ImGui.Checkbox("Focus Predict Emergencies", elixir.Config.IsHealFocusEmergencyPredictive)
-    if isCheckboxChanged then
-        elixir.Config.IsHealFocusEmergencyPredictive = isNewCheckboxValue
-        isChanged = true
-    end
-    ImGui.SameLine()
-    HelpMarker("When enabled, Emergency Healing will also be used in cases an ally takes 40% of max health in a short amount of time, predicting a potential emergency situation, but may cause prematurely healing too.")
-
-    --ImGui.EndDisabled() -- focus emergency heal
-
-    isNewCheckboxValue, isCheckboxChanged = ImGui.Checkbox("Focus Fallback Healing", elixir.Config.IsHealFocusFallback)
-    if isCheckboxChanged then
-        elixir.Config.IsHealFocusFallback = isNewCheckboxValue
-        isChanged = true
-    end
-    ImGui.SameLine()
-    HelpMarker("When enabled, if focus target does not meet requirement to need a heal, fallback to trying to heal other allies.")
-
-    --ImGui.EndDisabled() -- heal focus
     ImGui.EndDisabled() -- heal
 
     ImGui.EndGroup()

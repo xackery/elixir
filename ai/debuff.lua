@@ -4,9 +4,11 @@ local mq = require('mq')
 ---@class debuff
 ---@field public Output string # AI Debug String
 ---@field private debuffCooldown number # cooldown between debuffing
+---@field private Retries number[] # retry count per spell ID
 debuff = {
     Output = '',
     debuffCooldown = 0,
+    Retries = {},
 }
 
 ---Attempts to cast a debuff spell
@@ -24,6 +26,7 @@ function debuff:Cast(elixir)
     if mq.TLO.Me.Casting.ID() then return string.format("already casting %s", mq.TLO.Me.Casting.Name()) end
     if mq.TLO.Window("Casting").Open() then return "casting window open" end
     if mq.TLO.Me.Animation() == 16 then return "feign death" end
+    if mq.TLO.Me.PctMana() < elixir.Config.DebuffPctMinMana then return string.format("mana too low at %d%%, needs to be greater than %d%%", mq.TLO.Me.PctMana(), elixir.Config.NukePctMinMana) end
     local spawn = mq.TLO.Target
     if not spawn() then return "no target" end
     if spawn.Type() ~= "NPC" then return "target is not NPC" end
@@ -39,7 +42,13 @@ function debuff:Cast(elixir)
 
     for i = 1, mq.TLO.Me.NumGems() do
         if elixir.Gems[i].Tag.IsDebuff and
-            not elixir.Gems[i].IsIgnored then
+            not elixir.Gems[i].IsIgnored and
+            (self.Retries[elixir.Gems[i].SpellID] > 0 and self.Retries[elixir.Gems[i].SpellID] < elixir.Config.DebuffRetryCount) then
+            if not self.Retries[elixir.Gems[i].SpellID] then
+                self.Retries[elixir.Gems[i].SpellID] = 0
+            else
+                self.Retries[elixir.Gems[i].SpellID] = self.Retries[elixir.Gems[i].SpellID] + 1
+            end
             isCasted, lastCastOutput = debuff:CastGem(elixir, spawn.ID(), i)
             elixir.Gems[i].Output = "debuff ai: " .. lastCastOutput
             if isCasted then return lastCastOutput end

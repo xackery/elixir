@@ -1,6 +1,6 @@
 ---@type Element
 local targetElement = {}
-targetElement.Index = 7
+targetElement.Index = 8
 targetElement.Icon = '\xef\x85\x80'
 targetElement.Title = targetElement.Icon .. ' Target AI'
 
@@ -23,6 +23,15 @@ local function targetRender()
 
     ImGui.BeginDisabled(not elixir.Config.IsTargetAI)
 
+    ImGui.PushItemWidth(100)
+    local isNewSliderValue, isSliderChanged = ImGui.SliderInt("Maximum Range", elixir.Config.TargetAssistMaxRange, 1, 250, "%d")
+    if isSliderChanged then
+        isChanged = true
+        elixir.Config.TargetAssistMaxRange = isNewSliderValue
+    end
+    ImGui.SameLine()
+    HelpMarker("Maximum range to assist to target")
+
     isNewCheckboxValue, isCheckboxChanged = ImGui.Checkbox("Pet Assist", elixir.Config.IsTargetPetAssist)
     if isCheckboxChanged then
         elixir.Config.IsTargetPetAssist = isNewCheckboxValue
@@ -31,7 +40,7 @@ local function targetRender()
     ImGui.SameLine()
     HelpMarker("Use /pet attack on assist target if player owns a pet.")
 
-    --TODO TargetMinRange
+    --TODO TargetAssistMaxRange
 
     ImGui.EndDisabled()
     ImGui.EndGroup()

@@ -1,6 +1,6 @@
 ---@type Element
 local nukeElement = {}
-nukeElement.Index = 10
+nukeElement.Index = 11
 nukeElement.Icon = '\xef\x83\xa7'
 nukeElement.Title = nukeElement.Icon .. ' Nuke AI'
 
@@ -36,7 +36,7 @@ local function nukeRender()
     local isNewSliderValue, isSliderChanged = ImGui.SliderInt("Until I Have", elixir.Config.NukePctMinMana, 1, 99, "%d%% Mana")
     if isSliderChanged then
         isChanged = true
-        elixir.Config.elixir.Config.NukePctNormal = isNewSliderValue
+        elixir.Config.elixir.Config.NukePctMinMana = isNewSliderValue
     end
     ImGui.SameLine()
     HelpMarker("Stop nuking when you hit the limit")

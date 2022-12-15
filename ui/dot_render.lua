@@ -1,6 +1,6 @@
 ---@type Element
 local dotElement = {}
-dotElement.Index = 9
+dotElement.Index = 10
 dotElement.Icon = '\xef\x84\xae'
 dotElement.Title = dotElement.Icon .. ' Dot AI'
 
@@ -23,7 +23,24 @@ local function dotRender()
 
     ImGui.BeginDisabled(not elixir.Config.IsDotAI)
 
-    -- TODO: dotpctnormal
+    
+    ImGui.PushItemWidth(100)
+    local isNewSliderValue, isSliderChanged = ImGui.SliderInt("Start At", elixir.Config.DotPctNormal, 1, 99, "%d%% HP")
+    if isSliderChanged then
+        isChanged = true
+        elixir.Config.elixir.Config.DotPctNormal = isNewSliderValue
+    end
+    ImGui.SameLine()
+    HelpMarker("Wait until target has at least the threshold in hitpoints before nuking")
+
+    ImGui.PushItemWidth(100)
+    local isNewSliderValue, isSliderChanged = ImGui.SliderInt("Until I Have", elixir.Config.DotPctMinMana, 1, 99, "%d%% Mana")
+    if isSliderChanged then
+        isChanged = true
+        elixir.Config.elixir.Config.DotPctMinMana = isNewSliderValue
+    end
+    ImGui.SameLine()
+    HelpMarker("Stop nuking when you hit the limit")
 
     isNewCheckboxValue, isCheckboxChanged = ImGui.Checkbox("Subtle Casting", elixir.Config.IsDotSubtleCasting)
     if isCheckboxChanged then

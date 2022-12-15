@@ -36,7 +36,7 @@ function target:Check(elixir)
     if not spawnID then return "no assist target available" end
     local spawn = mq.TLO.Spawn(spawnID)
     if not spawn() then return "no assist target found" end
-    if spawn.Distance() > elixir.Config.TargetMinRange then return spawn.Name() .. " too far to assist" end
+    if spawn.Distance() > elixir.Config.TargetAssistMaxRange then return spawn.Name() .. " too far to assist" end
     if not spawn.LineOfSight() then return spawn.Name() .. " is not line of sight" end
     if spawn.Type() ~= "NPC" then return spawn.Name() .. " is not NPC" end
 
@@ -53,12 +53,12 @@ function target:Check(elixir)
             return "setting pet to attack "..spawn.Name()
         end
         
-        return "already assisting ".. spawn.Name()
+        return string.format("already assisting %s on %s", mq.TLO.Group.MainAssist.Name(), spawn.Name())
     end
     self.targetCooldown = mq.gettime() + 6000
     mq.cmd(string.format("/target id %d", spawnID))
     --elixir.IsActionCompleted = true
-    --elixir.LastActionOutput = string.format("assisting %s on %s", mq.TLO.Group.MainAssist.Name(), spawn.Name())
+    elixir.LastActionOutput = string.format("assisting %s on %s", mq.TLO.Group.MainAssist.Name(), spawn.Name())
     return elixir.LastActionOutput
 end
 

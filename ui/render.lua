@@ -16,6 +16,7 @@ local dotElement = require('ui/dot_render')
 local elixirElement = require('ui/elixir_render')
 local healElement = require('ui/heal_render')
 local hotElement = require('ui/hot_render')
+local cureElement = require('ui/cure_render')
 local ignoreGemsElement = require('ui/ignore_gems_render')
 local meditateElement = require('ui/meditate_render')
 local mezElement = require('ui/mez_render')
@@ -41,6 +42,7 @@ elements[dotElement.Index] = dotElement
 elements[elixirElement.Index] = elixirElement
 elements[healElement.Index] = healElement
 elements[hotElement.Index] = hotElement
+elements[cureElement.Index] = cureElement
 elements[ignoreGemsElement.Index] = ignoreGemsElement
 elements[meditateElement.Index] = meditateElement
 elements[mezElement.Index] = mezElement
@@ -239,6 +241,21 @@ function OverlayRender(isOpen)
             ImGui.SameLine(4)
             enabledIconStyle()
             ImGui.Text(mezElement.Icon)
+            ImGui.PopStyleColor(1)
+            lastX, lastY = ImGui.GetCursorPos()
+        end
+
+        if elixir.Config.IsCureAI then
+            windowHeight = windowHeight + 20
+            if ImGui.InvisibleButton("cure", ICON_WIDTH, 20) then
+                elixir.SettingsTabIndex = cureElement.Index
+                if not elixir.Config.IsElixirSettingsUIOpen then elixir.Config.IsElixirSettingsUIOpen = true end
+            end
+            ImGui.SetCursorPos(lastX, lastY)
+            ImGui.NewLine()
+            ImGui.SameLine(4)
+            enabledIconStyle()
+            ImGui.Text(cureElement.Icon)
             ImGui.PopStyleColor(1)
             lastX, lastY = ImGui.GetCursorPos()
         end

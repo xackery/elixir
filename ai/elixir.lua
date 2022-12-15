@@ -13,7 +13,11 @@ local Version = "v0.5.5"
 ---@field public LastActionOutput string # Last Action executed output
 ---@field public Gems Gem[] # Gem data
 ---@field public Buttons Button[] # Button data
+---@field public Allies string[] # List of allies spawn IDs
+---@field public AlliesRaidSize number # cache for last raid size
+---@field public AlliesGroupSize number # cache for last group size
 ---@field public HealAI heal # Heal AI reference
+---@field public CureAI cure # Cure AI reference
 ---@field public HotAI hot # Hot AI reference
 ---@field public MoveAI move # movement AI referenc
 ---@field public MezAI mez # movement AI reference
@@ -32,6 +36,7 @@ elixir = {
     LastActionOutput = '',
     Gems = {},
     Buttons = {},
+    Allies = {},
     ArcheryAI = require('ai/archery'),
     AttackAI = require('ai/attack'),
     BuffAI = require('ai/buff'),
@@ -39,6 +44,7 @@ elixir = {
     DebuffAI = require('ai/debuff'),
     DotAI = require('ai/dot'),
     HealAI = require('ai/heal'),
+    CureAI = require('ai/cure'),
     HotAI = require('ai/hot'),
     MeditateAI = require('ai/meditate'),
     MezAI = require('ai/mez'),
@@ -71,17 +77,23 @@ elixir = {
 ---@field public HealPctNormal number # If set, Heal AI will try healing a target when at pct with normal heal
 ---@field public HealNormalSound string # sound to play on normal heal alert
 ---@field public HealEmergencySound string # sound to play on normal heal alert
----@field public IsHealEmergencyAllowed boolean  # If set, Heal AI will try use emergeny heals
 ---@field public HealPctEmergency number # If set, Heal AI will try healing a target when at pct with emergency heal
+---@field public IsHealEmergencyAllowed boolean  # If set, Heal AI will try use emergeny heals
 ---@field public IsHealFocus boolean  # If set, Heal AI try to heal a focus target
+---@field public HealFocusNormalSound string # sound to play on normal heal alert
 ---@field public HealFocusName string # If set, Heal AI will focus on provided spawn name
 ---@field public HealFocusSpellID number # If set, Heal AI will focus on provided spell ID on focus ID
 ---@field public HealFocusPctNormal number # If set, Heal AI will focus on healing a target with pct normal heal
 ---@field public IsHealFocusEmergencyAllowed boolean  # If set, Heal AI will try use emergeny heals
 ---@field public HealFocusPctEmergency number # If set, Heal AI will focus on healing a target with pct emergency heal
+---@field public HealFocusEmergencySound string # sound to play on normal heal alert
 ---@field public IsHealEmergencyPredictive boolean  # If set, Heal AI on emergencies will predict a bad situation
 ---@field public IsHealFocusEmergencyPredictive boolean  # If set, Heal AI on focus emergencies will predict a bad situation
 ---@field public IsHealFocusFallback boolean # If true, Heal AI will fall back to normal healing if focus does not need healing
+---Cure AI
+---@field public IsCureAI boolean # Is Cure AI enabled
+---@field public IsCureRaid boolean # Is curing raid enabled
+---@field public IsCureXTarget boolean # Is curing xtarget enabled
 ---Hot AI
 ---@field public IsHotAI boolean # Is Hot AI enabled
 ---@field public IsHotRaid boolean # Is Raid heal over times enabled
@@ -137,7 +149,7 @@ elixir = {
 ---Target AI
 ---@field public IsTargetAI boolean # Is Target AI enabled
 ---@field public IsTargetPetAssist boolean # Will Target AI use pet attack
----@field public TargetMinRange number # Distance to target assist mob
+---@field public TargetAssistMaxRange number # Distance to target assist mob
 ---Buff AI
 ---@field public IsBuffAI boolean # Is Buff AI enabled
 ---@field public BuffPctNormal number # % to buff normal
@@ -157,6 +169,8 @@ elixir = {
 ---@field public IsDebuffFearKiting boolean # is fear kiting allowed
 ---@field public IsDebuffNoSnareFearKiting boolean # is fear kiting without a snared mob allowed
 ---@field public IsDebuffSubtleCasting boolean # Is debuffing a subtle casting feature
+---@field public DebuffPctMinMana number # Minimum mana to be able to debuff
+---@field public DebuffRetryCount number # Number of retries of a spell before giving up
 ---Meditate AI
 ---@field public IsMeditateAI boolean # Is Meditate AI enabled
 ---@field public IsMeditateDuringCombat boolean # Is Meditate allowed if in combat
@@ -180,8 +194,11 @@ elixir.Config = {
     IsHealEmergencyPredictive = true,
     IsHealFocusEmergencyPredictive = false,
     IsHealFocusFallback = false,
-    HealNormalSound = '',
-    HealEmergencySound = '',
+    HealNormalSound = 'heal',
+    HealFocusNormalSound = 'heal',
+    HealEmergencySound = 'heal',
+    HealFocusEmergencySound = 'heal',
+    CureNormalSound = 'cure',
     IsHealRaid = true,
     IsHealPets = true,
     IsHealXTarget = true,
@@ -211,13 +228,14 @@ elixir.Config = {
     IsCharmAI = false,
     IsTargetAI = false,
     IsTargetPetAssist = true,
-    TargetMinRange = 40,
+    TargetAssistMaxRange = 40,
     IsBuffAI = false,
     BuffPctNormal = 95,
     IsBuffSubtleCasting = true,
     IsDotAI = false,
     DotPctNormal = 95,
     IsDotSubtleCasting = true,
+    DotPctMinMana = 50,
     IsNukeAI = false,
     NukePctNormal = 95,
     NukePctMinMana = 50,
@@ -227,6 +245,8 @@ elixir.Config = {
     IsDebuffSubtleCasting = true,
     IsDebuffFearKiting = true,
     IsDebuffNoSnareFearKiting = false,
+    DebuffPctMinMana = 20,
+    DebuffRetryCount = 2,
     IsMeditateDuringCombat = true,
     IsDebugVerboseEnabled = true,
     IsGem1Ignored = false,
@@ -395,6 +415,7 @@ function elixir:Initialize()
         elixir.Config.IsHealAI = true
         elixir.Config.HealNormalSound = 'heal'
         elixir.Config.IsHotAI = true
+        elixir.Config.IsCureAI = true
         elixir.Config.IsDebuffAI = true
         elixir.Config.IsDebuffSubtleCasting = true
         elixir.Config.IsNukeAI = true
@@ -430,6 +451,30 @@ function elixir:Initialize()
         elixir.HealAI.IsHealNormalSoundValid = false
     end
 
+    local f = io.open(string.format("%s/elixir/%s.wav", mq.configDir, elixir.Config.HealFocusNormalSound))
+    if f ~= nil then
+        elixir.HealAI.IsHealFocusNormalSoundValid = true
+        io.close(f)
+    else
+        elixir.HealAI.IsHealFocusNormalSoundValid = false
+    end
+
+    local f = io.open(string.format("%s/elixir/%s.wav", mq.configDir, elixir.Config.HealFocusEmegencySound))
+    if f ~= nil then
+        elixir.HealAI.IsHealFocusEmergencySoundValid = true
+        io.close(f)
+    else
+        elixir.HealAI.IsHealFocusEmergencySoundValid = false
+    end
+
+    f = io.open(string.format("%s/elixir/%s.wav", mq.configDir, elixir.Config.CureNormalSound))
+    if f ~= nil then
+        elixir.CureAI.IsCureNormalSoundValid = true
+        io.close(f)
+    else
+        elixir.CureAI.IsCureNormalSoundValid = false
+    end
+
     f = io.open(string.format("%s/elixir/%s.wav", mq.configDir, elixir.Config.HotNormalSound))
     if f ~= nil then
         elixir.HotAI.IsHotNormalSoundValid = true
@@ -447,6 +492,58 @@ function elixir:Initialize()
     end
 end
 
+function elixir:RepopulateAllies()
+    if self.AlliesGroupSize == mq.TLO.Me.GroupSize() and self.AlliesRaidSize == mq.TLO.Raid.Members() and self.AlliesXTargetSize == mq.TLO.Me.XTarget() then return end
+    self.AlliesGroupSize = mq.TLO.Me.GroupSize()
+    self.AlliesRaidSize = mq.TLO.Raid.Members()
+    self.AlliesXTargetSize = mq.TLO.Me.XTarget()
+
+    self.Allies = {}
+    self.Allies[mq.TLO.Me.ID()] = mq.TLO.Me.Spawn.Name()
+
+    if mq.TLO.Group.GroupSize() then
+        for i = 0, mq.TLO.Group.Members() do
+            local pG = mq.TLO.Group.Member(i)
+            if pG() and
+            pG.Present() and
+            pG.Type() ~= "CORPSE" and
+            pG.Distance() < 200 and
+            not pG.Offline() and
+            pG.Spawn() then
+                print(pG.Spawn.Name())
+                self.Allies[pG.Spawn.ID()] = pG.Spawn.Name()
+            end
+        end
+    end
+
+    if mq.TLO.Raid.Members() then
+        for i = 0, mq.TLO.Raid.Members() do
+            local pR = mq.TLO.Raid.Member(i)
+            if pR() and
+            pR.Type() ~= "CORPSE" and
+            pR.Distance() < 200 and
+            pR.Spawn() then
+                self.Allies[pR.Spawn.ID()] = pR.Spawn().Name()
+            end
+        end
+    end
+
+    if mq.TLO.Me.XTarget() then
+        for i = 0, mq.TLO.Me.XTarget() do
+            local xt = mq.TLO.Me.XTarget(i)
+            if xt() and
+            (xt.TargetType() == "Specific PC" or
+            xt.TargetType() == "Raid Assist 1" or
+            xt.TargetType() == "Raid Assist 2" or
+            xt.TargetType() == "Raid Assist 3") and
+            xt.Type() ~= "CORPSE" and
+            xt.Distance() < 200 then
+                self.Allies[xt.ID()] = mq.TLO.Spawn(xt.ID())().Name()
+            end
+        end
+    end
+end
+
 --- Reset will reset all strings for each update
 function elixir:Reset()
     self.isActionCompleted = false
@@ -459,7 +556,13 @@ function elixir:Reset()
         if not self.Gems[i] then self.Gems[i] = {} end
         self.Gems[i]:Refresh(i)
     end
+    if elixir.Config.HealFocusID ~= 0 and mq.TLO.Spawn(elixir.Config.HealFocusID)() == nil then
+        elixir.Config.HealFocusID = 0
+        elixir.HealAI.FocusName = ""
+    end
+
     self.IsInGame = (mq.TLO.EverQuest.GameState() == "INGAME")
+    self:RepopulateAllies()
 end
 
 function WaitOnCasting() return mq.TLO.Me.SpellReady(1)() end
@@ -483,6 +586,7 @@ function elixir:Update()
     self.CharmAI.Output = self.CharmAI:Cast(elixir)
     self.HotAI.Output = self.HotAI:Cast(elixir)
     self.MezAI.Output = self.MezAI:Cast(elixir)
+    self.CureAI.Output = self.CureAI:Cast(elixir)
     self.TargetAI.Output = self.TargetAI:Check(elixir)
     self.DebuffAI.Output = self.DebuffAI:Cast(elixir)
     self.DotAI.Output = self.DotAI:Cast(elixir)

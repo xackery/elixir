@@ -1,7 +1,7 @@
 ---@type Element
 local hotElement = {}
 hotElement.Index = 5
-hotElement.Icon = '\xee\x95\x88'
+hotElement.Icon = '\xee\x80\xa1'
 hotElement.FocusIcon = '\xee\x8f\xb3'
 hotElement.Title = hotElement.Icon .. ' Hot AI'
 

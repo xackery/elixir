@@ -1,6 +1,6 @@
 ---@type Element
 local debugElement = {}
-debugElement.Index = 16
+debugElement.Index = 17
 debugElement.Icon = '\xee\xa1\xa8'
 debugElement.Title = debugElement.Icon .. ' Debugger'
 
@@ -31,6 +31,8 @@ local function debugRender()
     ImGui.Text("Heal AI: " .. elixir.HealAI.Output)
     ImGui.Text("Charm AI: " .. elixir.CharmAI.Output)
     ImGui.Text("Hot AI: " .. elixir.HotAI.Output)
+    ImGui.Text("Mez AI: " .. elixir.MezAI.Output)
+    ImGui.Text("Cure AI: " .. elixir.CureAI.Output)
     ImGui.Text("Target AI: " .. elixir.TargetAI.Output)
     ImGui.Text("Debuff AI: " .. elixir.DebuffAI.Output)
     ImGui.Text("Dot AI: " .. elixir.DotAI.Output)

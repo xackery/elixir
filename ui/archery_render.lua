@@ -1,6 +1,6 @@
 ---@type Element
 local archeryElement = {}
-archeryElement.Index = 13
+archeryElement.Index = 14
 archeryElement.Icon = '\xee\x8c\x95'
 archeryElement.Title = archeryElement.Icon .. ' Archery AI'
 

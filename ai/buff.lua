@@ -77,7 +77,10 @@ function buff:CastGem(elixir, targetSpawnID, gemIndex)
     self.buffCooldown = mq.gettime() + 1000
     elixir.LastActionOutput = string.format("buff ai casting %s on %s", spell.Name(), mq.TLO.Spawn(targetSpawnID).Name())
     elixir.isActionCompleted = true
-    mq.cmd(string.format("/casting \"%s\" -targetid|%d -maxtries|2", spell.Name(), targetSpawnID))
+    if not mq.TLO.Target() or mq.TLO.Target.ID() ~= targetSpawnID then
+        mq.cmdf('/target id %d', targetSpawnID)
+    end
+    mq.cmdf("/cast %d", gemIndex)
     --mq.delay(5000, WaitOnCasting)
     return true, elixir.LastActionOutput
 end

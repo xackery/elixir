@@ -1,6 +1,6 @@
 ---@type Element
 local attackElement = {}
-attackElement.Index = 14
+attackElement.Index = 15
 attackElement.Icon = '\xef\x81\x9b'
 attackElement.Title = attackElement.Icon .. ' Attack AI'
 

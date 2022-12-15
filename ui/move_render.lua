@@ -1,6 +1,6 @@
 ---@type Element
 local moveElement = {}
-moveElement.Index = 12
+moveElement.Index = 13
 moveElement.Icon = '\xee\x94\xb6'
 moveElement.Title = moveElement.Icon .. ' Move AI'
 
