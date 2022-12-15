@@ -32,7 +32,6 @@ function heal:Cast(elixir)
     if mq.TLO.Me.Stunned() then return "stunned" end
     if AreObstructionWindowsVisible() then return "window obstructs casting" end
     if mq.TLO.Me.Moving() then return "moving" end
-    if mq.TLO.Me.Casting.ID() then return string.format("already casting %s", mq.TLO.Me.Casting.Name()) end
     if mq.TLO.Window("Casting").Open() then return "casting window open" end
     if mq.TLO.Me.Animation() == 16 then return "feign death" end
 
@@ -65,7 +64,18 @@ function heal:Cast(elixir)
     end
 
     self:snapshotAlliesPctHPs()
-
+    
+    if mq.TLO.Me.Casting.ID() then
+        local isHeal = false
+        for i = 1, mq.TLO.Me.NumGems() do
+            if elixir.Gems[i].SpellID == mq.TLO.Me.Casting.ID() and
+            elixir.Gems[i].Tag.IsHeal then
+                isHeal = true
+            end
+        end
+        if isHeal then return string.format("already casting heal %s", mq.TLO.Me.Casting.Name()) end
+    end
+    
     if elixir.Config.IsHealSubtleCasting and mq.TLO.Me.Grouped() and IsMeHighAggro() and not isEmergency then
         return "subtle casting enabled and currently high hate"
     end
@@ -185,6 +195,10 @@ function heal:EmergencyCast(elixir, spawnID)
     local aaName = "Divine Arbitration"
     if mq.TLO.Me.AltAbilityReady(aaName)() and
     mq.TLO.Me.AltAbility(aaName).Spell.Range() <= spawn.Distance() then
+        if mq.TLO.Me.Casting.ID() then
+            mq.cmd("/stopcast")
+            mq.delay(500)
+        end
         mq.cmd(string.format("/casting \"%s\"", aaName))
         elixir.LastActionOutput = string.format("heal ai emergency casting %s on %s", aaName, spawn.Name())
         return true, elixir.LastActionOutput
@@ -193,6 +207,10 @@ function heal:EmergencyCast(elixir, spawnID)
     local aaName = "Celestial Regeneration"
     if mq.TLO.Me.AltAbilityReady(aaName)() and
     mq.TLO.Me.AltAbility(aaName).Spell.Range() <= spawn.Distance() then
+        if mq.TLO.Me.Casting.ID() then
+            mq.cmd("/stopcast")
+            mq.delay(500)
+        end
         mq.cmd(string.format("/casting \"%s\"", aaName))
         elixir.LastActionOutput = string.format("heal ai emergency casting %s on %s", aaName, spawn.Name())
         return true, elixir.LastActionOutput
@@ -244,6 +262,13 @@ function heal:CastGem(elixir, targetSpawnID, gemIndex)
     self.healCooldown = mq.gettime() + 1000
     elixir.LastActionOutput = string.format("heal ai casting %s on %s", spell.Name(), mq.TLO.Spawn(targetSpawnID).Name())
     elixir.isActionCompleted = true
+
+    -- Heals are special and will cancel non-heals (checked earlier)
+    if mq.TLO.Me.Casting.ID() then
+        mq.cmd("/stopcast")
+        mq.delay(500)
+    end
+
     if not mq.TLO.Target() or mq.TLO.Target.ID() ~= targetSpawnID then
         mq.cmdf('/target id %d', targetSpawnID)
     end
