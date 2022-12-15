@@ -35,7 +35,7 @@ function stun:Cast(elixir)
     for i = 1, mq.TLO.Me.NumGems() do
         if elixir.Gems[i].Tag and
             elixir.Gems[i].Tag.StunDuration and
-            elixir.Gems[i].Tag.IsPBAE and
+            elixir.Gems[i].Tag.IsTargetPBAE and
             not elixir.Gems[i].IsIgnored then
             elixir:DebugPrintf("found stun at gem %d will cast on %d", i, spawn.ID())
             isCasted, lastCastOutput = stun:CastGem(elixir, spawn.ID(), i)

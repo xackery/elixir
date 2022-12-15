@@ -11,6 +11,7 @@ buff = {
 
 ---Attempts to cast a buff spell
 ---@param elixir elixir
+---@returns output string # cast attempt result
 function buff:Cast(elixir)
     if not elixir.Config.IsElixirAI then return "elixir ai not running" end
     if not elixir.Config.IsBuffAI then return "buff ai not running" end
@@ -35,50 +36,125 @@ function buff:Cast(elixir)
     if elixir.Config.IsBuffSubtleCasting and mq.TLO.Me.Grouped() and mq.TLO.Me.PctAggro() > 80 then
         return string.format("subtle casting enabled and currently high hate %d%%", mq.TLO.Me.PctAggro())
     end
-    
+
+    local isBuffMemorized = false
+    local isBuffSelfOnly = true
     for i = 1, mq.TLO.Me.NumGems() do
         if elixir.Gems[i].Tag.IsBuff and
             not elixir.Gems[i].IsIgnored then
-            elixir:DebugPrintf("found buff at gem %d will cast on %d", i, spawn.ID())
-            isCasted, lastCastOutput = buff:CastGem(elixir, spawn.ID(), i)
-            elixir.Gems[i].Output = " buff ai: " .. lastCastOutput
-            if isCasted then return lastCastOutput end
+            isBuffMemorized = true
+            if not elixir.Gems[i].Tag.IsTargetSelf then isBuffSelfOnly = false end
         end
     end
+
+    if not isBuffMemorized then return "no buffs memorized and not ignored" end
+    
+    -- For buffs, let's start with ourselves and iterate all valid targets
+    isCasted, lastCastOutput = self:Buff(elixir, mq.TLO.Me.ID())
+    if isCasted then return lastCastOutput end
+
+    if mq.TLO.Group.GroupSize() then
+        for i = 0, mq.TLO.Group.Members() do
+            local pG = mq.TLO.Group.Member(i)
+            if pG() and
+            pG.Present() and
+            pG.Type() ~= "CORPSE" and
+            pG.Distance() < 200 and
+            not pG.Offline() then
+                isCasted, lastCastOutput = self:Buff(elixir, pG.ID())
+                if isCasted then return lastCastOutput end
+                if elixir.Config.IsBuffPets and
+                pG.Pet() and
+                pG.Pet.ID() > 0 and
+                pG.Distance() < 200 then
+                    isCasted, lastCastOutput = self:Buff(elixir, pG.ID())
+                    if isCasted then return lastCastOutput end
+                end
+            end
+        end
+    end
+
+    if elixir.Config.IsBuffRaid and
+    mq.TLO.Raid.Members() then
+        for i = 0, mq.TLO.Raid.Members() do
+            local pR = mq.TLO.Raid.Member(i)
+            if pR() and            
+            pR.Type() ~= "CORPSE" and
+            pR.Distance() < 200 then
+                isCasted, lastCastOutput = self:Buff(elixir, pR.ID())
+                if isCasted then return lastCastOutput end
+            end
+        end
+    end
+
+    if elixir.Config.IsBuffXTarget and
+    mq.TLO.Me.XTarget() then
+        for i = 0, mq.TLO.Me.XTarget() do
+            local xt = mq.TLO.Me.XTarget(i)
+            if xt() and
+            (xt.TargetType() == "Specific PC" or
+            xt.TargetType() == "Raid Assist 1" or
+            xt.TargetType() == "Raid Assist 2" or
+            xt.TargetType() == "Raid Assist 3") and
+            xt.Type() ~= "CORPSE" and
+            xt.Distance() < 200 then
+                isCasted, lastCastOutput = self:Buff(elixir, xt.ID())
+                if isCasted then return lastCastOutput end
+            end
+        end
+    end
+
     return lastCastOutput
 end
 
+--- Attempts to buff target
+---@param elixir elixir
+---@param spawnID number
+---@returns isSuccess boolean, castOutput string
+function buff:Buff(elixir, spawnID)
+    local spawn = mq.TLO.Spawn(spawnID)
+    if spawn.Buff(0)() and spawn.Buff(0).Staleness() > 60000 then return false, spawn.Name() .. " too stale" end
+
+    local isCasted = false
+    local lastCastOutput = ""
+    for i = 1, mq.TLO.Me.NumGems() do
+        if elixir.Gems[i].Tag.IsBuff and
+        not elixir.Gems[i].IsIgnored then
+            isCasted, lastCastOutput = buff:CastGem(elixir, spawnID, i)
+            elixir:DebugPrintf("found buff at gem %d will cast on %d", i, spawnID)
+            elixir.Gems[i].Output = " buff ai: " .. lastCastOutput
+            if isCasted then return isCasted, lastCastOutput end
+        end
+    end
+    return false, "no buff spells found"
+end
+
+
 ---Attempts to cast a buff gem
 ---@param elixir elixir
----@param targetSpawnID number
+---@param spawnID number
 ---@param gemIndex number
 ---@returns isSuccess boolean, castOutput string
-function buff:CastGem(elixir, targetSpawnID, gemIndex)
+function buff:CastGem(elixir, spawnID, gemIndex)
 
     local spellTag = elixir.Gems[gemIndex].Tag
 
     local spell = mq.TLO.Me.Gem(gemIndex)
     if not mq.TLO.Me.SpellReady(gemIndex)() then return false, spell.Name().." not ready" end
     if not spell() then return false, "no spell found" end
+    if not spell.StacksSpawn(spawnID)() then return false, spell.Name().." will not stack" end
     if spell.Mana() > mq.TLO.Me.CurrentMana() then return false, "not enough mana (" .. mq.TLO.Me.CurrentMana() .. "/" .. spell.Mana() .. ")" end
-    if mq.TLO.Target.Buff(spell.Name()).ID() then return false, "target already has "..spell.Name().." on them" end
-    if mq.TLO.Spawn(targetSpawnID).Distance() > spell.Range() then return false, "target too far away" end
-    
-    if spellTag.IsSlow and mq.TLO.Target.Slowed.ID() then
-        if mq.TLO.Target.Slowed.SlowPct() >= spell.SlowPct() then return false, string.format("target already slowed %d%%", mq.TLO.Target.Slowed.SlowPct()) end
-        --TODO: immune to slow check
-    end
-
-    if spellTag.IsSnare and mq.TLO.Target.Snared.ID() then
-        if not mq.TLO.Target.Snared.WillStack(spell.Name()) then return false, string.format("target already snared") end
-        --TODO: immune to snare check
+    if mq.TLO.Spawn(spawnID).Distance() > spell.Range() then return false, "target too far away" end
+    if spellTag.IsHaste then
+        local buff = mq.TLO.Spawn(spawnID).FindBuff("spa haste")
+        if buff() and buff.HastePct() >= spell.HastePct() then return false, "already hasted" end
     end
 
     self.buffCooldown = mq.gettime() + 1000
-    elixir.LastActionOutput = string.format("buff ai casting %s on %s", spell.Name(), mq.TLO.Spawn(targetSpawnID).Name())
+    elixir.LastActionOutput = string.format("buff ai casting %s on %s", spell.Name(), mq.TLO.Spawn(spawnID).Name())
     elixir.isActionCompleted = true
-    if not mq.TLO.Target() or mq.TLO.Target.ID() ~= targetSpawnID then
-        mq.cmdf('/target id %d', targetSpawnID)
+    if not mq.TLO.Target() or mq.TLO.Target.ID() ~= spawnID then
+        mq.cmdf('/target id %d', spawnID)
     end
     mq.cmdf("/cast %d", gemIndex)
     --mq.delay(5000, WaitOnCasting)

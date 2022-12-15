@@ -84,7 +84,7 @@ function heal:Cast(elixir)
     if spawnCount > 2 then
         for i = 1, mq.TLO.Me.NumGems() do
             if elixir.Gems[i].Tag.IsHeal and
-                elixir.Gems[i].Tag.IsGroupSpell and
+                elixir.Gems[i].Tag.IsTargetGroup and
                 (not elixir.Gems[i].Tag.IsNuke or elixir.TargetAI.IsTargetAttackable) and -- lifetap check
                 not elixir.Gems[i].IsIgnored then
                 

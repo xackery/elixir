@@ -104,7 +104,7 @@ function cure:Cure(elixir, spawnID)
 
     local isCasted = false
     local lastCastOutput = ""
-    print(isDiseased)
+
     for i = 1, mq.TLO.Me.NumGems() do
         if ((elixir.Gems[i].Tag.IsCureDisease and isDiseased) or
         (elixir.Gems[i].Tag.IsCurePoison and isPoisoned) or

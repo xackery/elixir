@@ -45,7 +45,7 @@ function hot:Cast(elixir)
     if spawnCount > 2 then
         for i = 1, mq.TLO.Me.NumGems() do
             if elixir.Gems[i].Tag.IsHot and
-                elixir.Gems[i].Tag.IsGroupSpell and
+                elixir.Gems[i].Tag.IsTargetGroup and
                 self.spawnHotSnapshot[spawnID] < mq.gettime() and
                 not elixir.Gems[i].IsIgnored then
                 
@@ -72,7 +72,7 @@ function hot:Cast(elixir)
     end
     for i = 1, mq.TLO.Me.NumGems() do
         if elixir.Gems[i].Tag.IsHot and
-        not elixir.Gems[i].Tag.IsGroupSpell and
+        not elixir.Gems[i].Tag.IsTargetGroup and
         (not self.spawnHotSnapshot[spawnID] or self.spawnHotSnapshot[spawnID] < mq.gettime()) and
         not elixir.Gems[i].IsIgnored then
             elixir:DebugPrintf("found hot at gem %d will cast on %d", i, spawnID)
@@ -101,7 +101,7 @@ function hot:FocusCast(elixir)
     for i = 1, mq.TLO.Me.NumGems() do
         if elixir.Gems[i].Tag.IsHot and
             not elixir.Gems[i].IsIgnored and
-            not elixir.Gems[i].Tag.IsGroupSpell and
+            not elixir.Gems[i].Tag.IsTargetGroup and
             (not self.spawnHotSnapshot[spawnID] or self.spawnHotSnapshot[spawnID] < mq.gettime()) and
             (elixir.Config.HotFocusSpellID == elixir.Gems[i].SpellID or
             elixir.Config.HotFocusSpellID == 0)

@@ -16,15 +16,14 @@ local mq = require('mq')
 ---@field IsSow boolean # Is spell a sow
 ---@field IsFear boolean # Is spell a fear one
 ---@field IsTaunt boolean # Is spell a taunt
----@field IsPBAE boolean # Is spell a ae
 ---@field IsPetSummon boolean # Is spell a petsummon
 ---@field IsTransport boolean # Is spell a transport
----@field IsGroupSpell boolean # Is spell a groupspell
 ---@field IsBardSong boolean # Is spell a bardsong
 ---@field IsMez boolean # Is spell a mez
 ---@field IsLull boolean # Is spell a lull
 ---@field IsCureDisease boolean # Is spell a curedisease
 ---@field IsCurePoison boolean # Is spell a curepoison
+---@field IsCureCurse boolean # Is spell a curecurse
 ---@field IsSummonItem boolean # Is spell a summonitem
 ---@field IsInvulnerability boolean # Is spell a invulnerability
 ---@field IsRessurect boolean # Is spell a ressurect
@@ -32,6 +31,17 @@ local mq = require('mq')
 ---@field IsSlow boolean # Is spell a slow
 ---@field IsFeignDeath boolean # Is spell one that triggers FD
 ---@field IsDeathPact boolean # Is spell a divine intervention line spell
+---@field IsTargetGroup boolean # Is spell a groupspell
+---@field IsTargetPBAE boolean # Is spell a ae
+---@field IsTargetSelf boolean # Is spell target self only
+---@field IsTargetSingle boolean # Is spell single target
+---@field IsUndeadOnly boolean # Is spell only usable against undead
+---@field IsSummonedOnly boolean # Is spell only usable against undead
+---@field IsUberDragonsOnly boolean # only valid if
+---@field IsUberGiantsOnly boolean # only valid if
+---@field IsPlantOnly boolean # only valid if
+---@field IsCorpseOnly boolean # only valid if
+---@field IsAnimalOnly boolean # only valid if
 ---@field StunDuration number
 ---@field DamageAmount number
 ---@field HealAmount number
@@ -39,7 +49,6 @@ local mq = require('mq')
 ---@field SpellGroup number
 ---@field Ticks number
 ---@field Targets number
----@field TargetType number
 ---@field Skill number
 SpellTag = {
 }
@@ -55,6 +64,7 @@ local function initializeSpellTag(spellID)
         StunDuration = 0,
         IsHot = false,
         IsDot = false,
+        IsTargetSelf = false,
     } ---@type SpellTag
 
     local currentSpell = mq.TLO.Spell(spellID)
@@ -507,7 +517,11 @@ local function initializeSpellTag(spellID)
         end
 
         if attr == 116 then -- SPA_CURSE
-            spellTag.IsDebuff = true
+            if currentSpell.SpellType() == "Beneficial" or currentSpell.SpellType() == "Beneficial(Group)" then
+                spellTag.IsCureCurse = true
+            else
+                spellTag.IsDebuff = true
+            end
         end
 
         if attr == 117 then -- SPA_HIT_MAGIC
@@ -1797,21 +1811,79 @@ local function initializeSpellTag(spellID)
         end
     end
 
-    if currentSpell.TargetType() == "PB AE" then
-        spellTag.IsPBAE = true
+    if currentSpell.TargetType() == "PB AE" then spellTag.IsTargetPBAE = true end
+    if currentSpell.TargetType() == "AE PC v1" then spellTag.IsTargetPBAE = true end
+	if currentSpell.TargetType() == "AE PC v2" then spellTag.IsTargetPBAE = true end
+    if currentSpell.TargetType() == "Group v1" then spellTag.IsTargetGroup = true end
+    if currentSpell.TargetType() == "Group v2" then spellTag.IsTargetGroup = true end
+    if currentSpell.TargetType() == "Self" then spellTag.IsTargetSelf = true end
+    if currentSpell.TargetType() == "Target AE No Players Pets" then spellTag.IsTargetAE = true end
+    if currentSpell.TargetType() == "Pet Owner" then spellTag.IsTargetAE = true end
+    --if currentSpell.TargetType() == "Single Friendly (or Target's Target" then spellTag.IsFoo = true end
+	--if currentSpell.TargetType() == "Pet Owner" then spellTag.IsFoo = true end
+	--if currentSpell.TargetType() == "Target of Target" then spellTag.IsFoo = true end
+	--if currentSpell.TargetType() == "Free Target" then spellTag.IsFoo = true end
+	--if currentSpell.TargetType() == "Beam" then spellTag.IsFoo = true end
+	--if currentSpell.TargetType() == "Single in Group" then spellTag.IsFoo = true end
+	--if currentSpell.TargetType() == "Directional AE" then spellTag.IsFoo = true end
+	--if currentSpell.TargetType() == "No Pets" then spellTag.IsFoo = true end
+	--if currentSpell.TargetType() == "Pet2" then spellTag.IsFoo = true end
+	--if currentSpell.TargetType() == "Caster PB NPC" then spellTag.IsFoo = true end
+	--if currentSpell.TargetType() == "Caster PB PC" then spellTag.IsFoo = true end
+	--if currentSpell.TargetType() == "Special Muramites" then spellTag.IsFoo = true end
+	--if currentSpell.TargetType() == "Chest" then spellTag.IsFoo = true end
+	--if currentSpell.TargetType() == "Hatelist2" then spellTag.IsFoo = true end
+	--if currentSpell.TargetType() == "Hatelist" then spellTag.IsFoo = true end	
+	if currentSpell.TargetType() == "AE Summoned" then
+        spellTag.IsTargetPBAE = true
+        spellTag.IsSummonedOnly = true
     end
+	if currentSpell.TargetType() == "AE Undead" then
+        spellTag.IsTargetPBAE = true
+        spellTag.IsUndeadOnly = true
+    end
+	if currentSpell.TargetType() == "Targeted AE Tap" then
+        spellTag.IsTargetAE = true
+        spellTag.IsLifetap = true
+    end
+	if currentSpell.TargetType() == "Uber Dragons" then
+        spellTag.IsTargetSingle = true
+        spellTag.IsUberDragonsOnly = true
+    end
+	if currentSpell.TargetType() == "Uber Giants" then
+        spellTag.IsTargetSingle = true
+        spellTag.IsUberGiantsOnly = true
+    end
+	if currentSpell.TargetType() == "Plant" then
+        spellTag.IsTargetSingle = true
+        spellTag.IsPlantOnly = true
+    end
+	if currentSpell.TargetType() == "Corpse" then
+        spellTag.IsTargetSingle = true
+        spellTag.IsCorpseOnly = true
+    end
+	if currentSpell.TargetType() == "Pet" then spellTag.IsTargetPet = true end
+	if currentSpell.TargetType() == "LifeTap" then
+        spellTag.IsTargetSingle = true
+         -- This may need to be removed, since lifetaps are nukes
+        spellTag.IsLifetap = true
+    end
+	if currentSpell.TargetType() == "Summoned" then
+        spellTag.IsTargetSingle = true
+        spellTag.IsSummonedOnly = true
+    end
+	if currentSpell.TargetType() == "Undead" then
+        spellTag.IsTargetSingle = true
+        spellTag.IsUndeadOnly = true
+    end
+	if currentSpell.TargetType() == "Animal" then
+        spellTag.IsTargetSingle = true
+        spellTag.IsAnimalOnly = true
+    end
+	if currentSpell.TargetType() == "Targeted AE" then spellTag.IsTargetAE = true end
+	if currentSpell.TargetType() == "Single" then spellTag.IsTargetSingle = true end
+    if currentSpell.TargetType() == "Line of Sight" then spellTag.IsTargetSingle = true end
 
-    if currentSpell.TargetType() == "AE PC v1" then
-        spellTag.IsPBAE = true
-    end
-
-    if currentSpell.TargetType() == "Group v1" then
-        spellTag.IsGroupSpell = true
-    end
-
-    if currentSpell.TargetType() == "Group v2" then
-        spellTag.IsGroupSpell = true
-    end
 
     if elixir.Config.IsDebugVerboseEnabled then
         local tags = ""

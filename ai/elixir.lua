@@ -152,8 +152,10 @@ elixir = {
 ---@field public TargetAssistMaxRange number # Distance to target assist mob
 ---Buff AI
 ---@field public IsBuffAI boolean # Is Buff AI enabled
----@field public BuffPctNormal number # % to buff normal
----@field public IsBuffSubtleCasting boolean # Is buffing a subtle casting feature
+---@field public IsBuffRaid boolean # Is Buffing raid enabled
+---@field public IsBuffPets boolean # Is Pets Buffing enabled
+---@field public IsBuffXTarget boolean # Is XTarget Buffing enabled
+---@field public IsBuffDuringCombat boolean # Is buffing allowed if in combat
 ---Dot AI
 ---@field public IsDotAI boolean # Is Dot AI enabled
 ---@field public DotPctNormal number # % to dot normal
