@@ -51,20 +51,21 @@ end
 
 ---Attempts to cast a dot gem
 ---@param elixir elixir
----@param targetSpawnID number
+---@param spawnID number
 ---@param gemIndex number
 ---@returns isSuccess boolean, castOutput string
-function dot:CastGem(elixir, targetSpawnID, gemIndex)
+function dot:CastGem(elixir, spawnID, gemIndex)
 
     local spellTag = elixir.Gems[gemIndex].Tag
-
+    local spawn = mq.TLO.Spawn(spawnID)
+    if not spawn() then return false, "spawn not found" end
     local spell = mq.TLO.Me.Gem(gemIndex)
     if not mq.TLO.Me.SpellReady(gemIndex)() then return false, spell.Name().." not ready" end
     if not spell() then return false, "no spell found" end
     if spell.Mana() > mq.TLO.Me.CurrentMana() then return false, "not enough mana (" .. mq.TLO.Me.CurrentMana() .. "/" .. spell.Mana() .. ")" end
     if not spell.StacksTarget() then return false, "debuff won't stack on target" end
     if mq.TLO.Target.Buff(spell.Name()).ID() then return false, "target already has "..spell.Name().." on them" end
-    if mq.TLO.Spawn(targetSpawnID).Distance() > spell.Range() then return false, "target too far away" end
+    if spawn.Distance() > spell.Range() then return false, "target too far away" end
     if not IsTargetValidBodyType(elixir.Gems[gemIndex].Tag) then return false, "invalid target body type" end
     if spellTag.IsSlow and mq.TLO.Target.Slowed.ID() then
         if mq.TLO.Target.Slowed.SlowPct() >= spell.SlowPct() then return false, string.format("target already slowed %d%%", mq.TLO.Target.Slowed.SlowPct()) end
@@ -77,9 +78,12 @@ function dot:CastGem(elixir, targetSpawnID, gemIndex)
     end
 
     self.dotCooldown = mq.gettime() + 1000
-    elixir.LastActionOutput = string.format("dot ai casting %s on %s", spell.Name(), mq.TLO.Spawn(targetSpawnID).Name())
+    elixir.LastActionOutput = string.format("dot ai casting %s on %s", spell.Name(), spawn.Name())
     elixir.isActionCompleted = true
-    mq.cmd(string.format("/casting \"%s\" -targetid|%d -maxtries|2", spell.Name(), targetSpawnID))
+    if not mq.TLO.Target() or mq.TLO.Target.ID() ~= spawnID then
+        mq.cmdf('/target id %d', spawnID)
+    end
+    mq.cmdf("/cast %d", gemIndex)
     --mq.delay(5000, WaitOnCasting)
     return true, elixir.LastActionOutput
 end

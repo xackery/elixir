@@ -36,7 +36,7 @@ function archery:Cast(elixir)
     mq.TLO.Group.MainAssist.ID() ~= mq.TLO.Me.ID() then
         return "no main assist set"
     end
-    
+
     if elixir.Config.IsArcherySubtle and IsMeHighAggro() and spawn.PctHPs() > 15 then
         return "subtle archery enabled and currently high hate"
     end

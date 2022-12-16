@@ -95,10 +95,10 @@ end
 
 ---Attempts to cast a charm gem
 ---@param elixir elixir
----@param targetSpawnID number
+---@param spawnID number
 ---@param gemIndex number
 ---@returns isSuccess boolean, castOutput string
-function charm:CastGem(elixir, targetSpawnID, gemIndex)
+function charm:CastGem(elixir, spawnID, gemIndex)
 
     local spellTag = elixir.Gems[gemIndex].Tag
 
@@ -107,22 +107,15 @@ function charm:CastGem(elixir, targetSpawnID, gemIndex)
     if not spell() then return false, "no spell found" end
     if spell.Mana() > mq.TLO.Me.CurrentMana() then return false, "not enough mana (" .. mq.TLO.Me.CurrentMana() .. "/" .. spell.Mana() .. ")" end    
     if mq.TLO.Target.Buff(spell.Name()).ID() then return false, "target already has "..spell.Name().." on them" end
-    if mq.TLO.Spawn(targetSpawnID).Distance() > spell.Range() then return false, "target too far away" end
-
-    if spellTag.IsSlow and mq.TLO.Target.Slowed.ID() then
-        if mq.TLO.Target.Slowed.SlowPct() >= spell.SlowPct() then return false, string.format("target already slowed %d%%", mq.TLO.Target.Slowed.SlowPct()) end
-        --TODO: immune to slow check
-    end
-
-    if spellTag.IsSnare and mq.TLO.Target.Snared.ID() then
-        if not mq.TLO.Target.Snared.WillStack(spell.Name()) then return false, string.format("target already snared") end
-        --TODO: immune to snare check
-    end
+    if mq.TLO.Spawn(spawnID).Distance() > spell.Range() then return false, "target too far away" end
 
     self.charmCooldown = mq.gettime() + 1000
-    elixir.LastActionOutput = string.format("charm ai casting %s on %s", spell.Name(), mq.TLO.Spawn(targetSpawnID).Name())
+    elixir.LastActionOutput = string.format("charm ai casting %s on %s", spell.Name(), mq.TLO.Spawn(spawnID).Name())
     elixir.isActionCompleted = true
-    mq.cmd(string.format("/casting \"%s\" -targetid|%d -maxtries|2", spell.Name(), targetSpawnID))
+    if not mq.TLO.Target() or mq.TLO.Target.ID() ~= spawnID then
+        mq.cmdf('/target id %d', spawnID)
+    end
+    mq.cmdf("/cast %d", gemIndex)
     --mq.delay(5000, WaitOnCasting)
     return true, elixir.LastActionOutput
 end

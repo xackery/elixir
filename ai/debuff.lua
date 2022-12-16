@@ -59,10 +59,10 @@ end
 
 ---Attempts to cast a debuff gem
 ---@param elixir elixir
----@param targetSpawnID number
+---@param spawnID number
 ---@param gemIndex number
 ---@returns isSuccess boolean, castOutput string
-function debuff:CastGem(elixir, targetSpawnID, gemIndex)
+function debuff:CastGem(elixir, spawnID, gemIndex)
 
     local spellTag = elixir.Gems[gemIndex].Tag
 
@@ -73,7 +73,7 @@ function debuff:CastGem(elixir, targetSpawnID, gemIndex)
     if spell.Mana() > mq.TLO.Me.CurrentMana() then return false, "not enough mana (" .. mq.TLO.Me.CurrentMana() .. "/" .. spell.Mana() .. ")" end    
     if not spell.StacksTarget() then return false, "debuff won't stack on target" end
     if mq.TLO.Target.Buff(spell.Name()).ID() then return false, "target already has "..spell.Name().." on them" end
-    if mq.TLO.Spawn(targetSpawnID).Distance() > spell.Range() then return false, "target too far away" end
+    if mq.TLO.Spawn(spawnID).Distance() > spell.Range() then return false, "target too far away" end
     if spellTag.IsFear and not mq.TLO.Target.Snared.ID() then
         if not elixir.Config.IsDebuffFearKiting then return false, "no fear kiting allowed" end
         if not elixir.Config.IsDebuffNoSnareFearKiting then return false, "no fear kiting using "..spell.Name().." without snare allowed" end
@@ -90,9 +90,12 @@ function debuff:CastGem(elixir, targetSpawnID, gemIndex)
     end
 
     self.debuffCooldown = mq.gettime() + 1000
-    elixir.LastActionOutput = string.format("debuff ai casting %s on %s", spell.Name(), mq.TLO.Spawn(targetSpawnID).Name())
+    elixir.LastActionOutput = string.format("debuff ai casting %s on %s", spell.Name(), mq.TLO.Spawn(spawnID).Name())
     elixir.isActionCompleted = true
-    mq.cmd(string.format("/casting \"%s\" -targetid|%d -maxtries|2", spell.Name(), targetSpawnID))
+    if not mq.TLO.Target() or mq.TLO.Target.ID() ~= spawnID then
+        mq.cmdf('/target id %d', spawnID)
+    end
+    mq.cmdf("/cast %d", gemIndex)
     --mq.delay(5000, WaitOnCasting)
     return true, elixir.LastActionOutput
 end

@@ -1,7 +1,7 @@
 ---@type Mq
 local mq = require('mq')
 
-local Version = "v0.5.5"
+local Version = "v0.5.6"
 
 
 ---@class elixir
@@ -325,7 +325,7 @@ end
 Button = {}
 
 local function loadConfig()
-    local path = string.format("elixir_%s_%s.lua", mq.TLO.EverQuest.Server(), mq.TLO.Me.Name())
+    local path = string.format("elixir/%s_%s.lua", mq.TLO.EverQuest.Server(), mq.TLO.Me.Name())
     
     if os.rename(path, path) and true then
         mq.pickle(path, elixir.Config)

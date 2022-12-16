@@ -125,25 +125,24 @@ end
 
 ---Attempts to cast a cure gem
 ---@param elixir elixir
----@param targetSpawnID number
+---@param spawnID number
 ---@param gemIndex number
 ---@returns isSuccess boolean, castOutput string
-function cure:CastGem(elixir, targetSpawnID, gemIndex)
+function cure:CastGem(elixir, spawnID, gemIndex)
     local spell = mq.TLO.Me.Gem(gemIndex)
     if not mq.TLO.Me.SpellReady(gemIndex)() then return false, spell.Name().." not ready" end
     if not spell() then return false, "no spell found" end
     if spell.Mana() > mq.TLO.Me.CurrentMana() then return false, "not enough mana (" .. mq.TLO.Me.CurrentMana() .. "/" .. spell.Mana() .. ")" end
 
-    if mq.TLO.Spawn(targetSpawnID).Distance() > spell.Range() then return false, "target too far away" end
+    if mq.TLO.Spawn(spawnID).Distance() > spell.Range() then return false, "target too far away" end
 
     self.cureCooldown = mq.gettime() + 1000
-    elixir.LastActionOutput = string.format("cure ai casting %s on %s", spell.Name(), mq.TLO.Spawn(targetSpawnID).Name())
+    elixir.LastActionOutput = string.format("cure ai casting %s on %s", spell.Name(), mq.TLO.Spawn(spawnID).Name())
     elixir.isActionCompleted = true
-    if not mq.TLO.Target() or mq.TLO.Target.ID() ~= targetSpawnID then
-        mq.cmdf('/target id %d', targetSpawnID)
+    if not mq.TLO.Target() or mq.TLO.Target.ID() ~= spawnID then
+        mq.cmdf('/target id %d', spawnID)
     end
     mq.cmdf("/cast %d", gemIndex)
-    --mq.cmd(string.format("/casting \"%s\" -targetid|%d -maxtries|2", spell.Name(), targetSpawnID))
     --mq.delay(5000, WaitOnCasting)
     return true, elixir.LastActionOutput
 end

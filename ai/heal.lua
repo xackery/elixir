@@ -193,25 +193,37 @@ function heal:EmergencyCast(elixir, spawnID)
     print("emergency situation detected")
     
     local aaName = "Divine Arbitration"
-    if mq.TLO.Me.AltAbilityReady(aaName)() and
-    mq.TLO.Me.AltAbility(aaName).Spell.Range() <= spawn.Distance() then
+    local altAbility = mq.TLO.Me.AltAbility(aaName)
+    --local altAbility = 
+    if altAbility() and
+    mq.TLO.Me.AltAbilityReady(aaName) and
+    altAbility.Spell.Range() <= spawn.Distance() then
         if mq.TLO.Me.Casting.ID() then
             mq.cmd("/stopcast")
             mq.delay(500)
         end
-        mq.cmd(string.format("/casting \"%s\"", aaName))
-        elixir.LastActionOutput = string.format("heal ai emergency casting %s on %s", aaName, spawn.Name())
+        if not mq.TLO.Target() or mq.TLO.Target.ID() ~= spawnID then
+            mq.cmdf('/target id %d', spawnID)
+        end
+
+        mq.cmdf("/doability %d", altAbility.ID())
+        elixir.LastActionOutput = string.format("heal ai emergency using AA %s on %s", aaName, spawn.Name())
         return true, elixir.LastActionOutput
     end
 
     local aaName = "Celestial Regeneration"
-    if mq.TLO.Me.AltAbilityReady(aaName)() and
-    mq.TLO.Me.AltAbility(aaName).Spell.Range() <= spawn.Distance() then
+    if altAbility() and
+    mq.TLO.Me.AltAbilityReady(aaName) and
+    altAbility.Spell.Range() <= spawn.Distance() then
         if mq.TLO.Me.Casting.ID() then
             mq.cmd("/stopcast")
             mq.delay(500)
         end
-        mq.cmd(string.format("/casting \"%s\"", aaName))
+        if not mq.TLO.Target() or mq.TLO.Target.ID() ~= spawnID then
+            mq.cmdf('/target id %d', spawnID)
+        end
+
+        mq.cmdf("/doability %d", altAbility.ID())
         elixir.LastActionOutput = string.format("heal ai emergency casting %s on %s", aaName, spawn.Name())
         return true, elixir.LastActionOutput
     end
@@ -248,19 +260,19 @@ end
 
 ---Attempts to cast a heal gem
 ---@param elixir elixir
----@param targetSpawnID number
+---@param spawnID number
 ---@param gemIndex number
 ---@returns isSuccess boolean, castOutput string
-function heal:CastGem(elixir, targetSpawnID, gemIndex)
+function heal:CastGem(elixir, spawnID, gemIndex)
     local spell = mq.TLO.Me.Gem(gemIndex)
     if not mq.TLO.Me.SpellReady(gemIndex)() then return false, spell.Name().." not ready" end
     if not spell() then return false, "no spell found" end
     if spell.Mana() > mq.TLO.Me.CurrentMana() then return false, "not enough mana (" .. mq.TLO.Me.CurrentMana() .. "/" .. spell.Mana() .. ")" end
 
-    if mq.TLO.Spawn(targetSpawnID).Distance() > spell.Range() then return false, "target too far away" end
+    if mq.TLO.Spawn(spawnID).Distance() > spell.Range() then return false, "target too far away" end
 
     self.healCooldown = mq.gettime() + 1000
-    elixir.LastActionOutput = string.format("heal ai casting %s on %s", spell.Name(), mq.TLO.Spawn(targetSpawnID).Name())
+    elixir.LastActionOutput = string.format("heal ai casting %s on %s", spell.Name(), mq.TLO.Spawn(spawnID).Name())
     elixir.isActionCompleted = true
 
     -- Heals are special and will cancel non-heals (checked earlier)
@@ -269,11 +281,10 @@ function heal:CastGem(elixir, targetSpawnID, gemIndex)
         mq.delay(500)
     end
 
-    if not mq.TLO.Target() or mq.TLO.Target.ID() ~= targetSpawnID then
-        mq.cmdf('/target id %d', targetSpawnID)
+    if not mq.TLO.Target() or mq.TLO.Target.ID() ~= spawnID then
+        mq.cmdf('/target id %d', spawnID)
     end
     mq.cmdf("/cast %d", gemIndex)
-    --mq.cmd(string.format("/casting \"%s\" -targetid|%d -maxtries|2", spell.Name(), targetSpawnID))    
     --mq.delay(5000, WaitOnCasting)
     return true, elixir.LastActionOutput
 end
