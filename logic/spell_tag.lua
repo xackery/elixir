@@ -1,58 +1,6 @@
 ---@type Mq
 local mq = require('mq')
 
----@class SpellTag # Keeps cached information about a spell
----@field IsHeal boolean # Is spell a heal
----@field IsHot boolean # Is spell a heal over time hot
----@field IsDebuff boolean # Is spell a debuff (slows, snares, things that don't break mez)
----@field IsBuff boolean # Is spell a buff (beneficial ally spell)
----@field IsNuke boolean # Is spell a nuke (damage component attached)
----@field IsDot boolean # Is spell a debuff with damage over time
----@field IsLifetap boolean # Is spell a lifetap (subcategory of nuke that heals self too)
----@field IsMana boolean # Is spell a mana (gives or takes mana)
----@field IsInvis boolean # Is spell one that gives invis
----@field IsCharm boolean # Is spell a charm
----@field IsSnare boolean # Is spell a snare
----@field IsSow boolean # Is spell a sow
----@field IsFear boolean # Is spell a fear one
----@field IsTaunt boolean # Is spell a taunt
----@field IsPetSummon boolean # Is spell a petsummon
----@field IsTransport boolean # Is spell a transport
----@field IsBardSong boolean # Is spell a bardsong
----@field IsMez boolean # Is spell a mez
----@field IsLull boolean # Is spell a lull
----@field IsCureDisease boolean # Is spell a curedisease
----@field IsCurePoison boolean # Is spell a curepoison
----@field IsCureCurse boolean # Is spell a curecurse
----@field IsSummonItem boolean # Is spell a summonitem
----@field IsInvulnerability boolean # Is spell a invulnerability
----@field IsRessurect boolean # Is spell a ressurect
----@field IsHaste boolean # Is spell a haste
----@field IsSlow boolean # Is spell a slow
----@field IsFeignDeath boolean # Is spell one that triggers FD
----@field IsDeathPact boolean # Is spell a divine intervention line spell
----@field IsTargetGroup boolean # Is spell a groupspell
----@field IsTargetPBAE boolean # Is spell a ae
----@field IsTargetSelf boolean # Is spell target self only
----@field IsTargetSingle boolean # Is spell single target
----@field IsUndeadOnly boolean # Is spell only usable against undead
----@field IsSummonedOnly boolean # Is spell only usable against undead
----@field IsUberDragonsOnly boolean # only valid if
----@field IsUberGiantsOnly boolean # only valid if
----@field IsPlantOnly boolean # only valid if
----@field IsCorpseOnly boolean # only valid if
----@field IsAnimalOnly boolean # only valid if
----@field StunDuration number
----@field DamageAmount number
----@field HealAmount number
----@field BodyType number
----@field SpellGroup number
----@field Ticks number
----@field Targets number
----@field Skill number
-SpellTag = {
-}
-
 --- local cache of existing spells
 local spellTagCache = {}
 
@@ -60,12 +8,106 @@ local spellTagCache = {}
 ---@param spellID number
 ---@return SpellTag # SpellTag generated or an error
 local function initializeSpellTag(spellID)
+
+    ---@class SpellTag # Keeps cached information about a spell
+    ---@field IsHeal boolean # Is spell a heal
+    ---@field IsHot boolean # Is spell a heal over time hot
+    ---@field IsDebuff boolean # Is spell a debuff (slows, snares, things that don't break mez)
+    ---@field IsBuff boolean # Is spell a buff (beneficial ally spell)
+    ---@field IsNuke boolean # Is spell a nuke (damage component attached)
+    ---@field IsDot boolean # Is spell a debuff with damage over time
+    ---@field IsLifetap boolean # Is spell a lifetap (subcategory of nuke that heals self too)
+    ---@field IsMana boolean # Is spell a mana (gives or takes mana)
+    ---@field IsInvis boolean # Is spell one that gives invis
+    ---@field IsCharm boolean # Is spell a charm
+    ---@field IsSnare boolean # Is spell a snare
+    ---@field IsSow boolean # Is spell a sow
+    ---@field IsFear boolean # Is spell a fear one
+    ---@field IsTaunt boolean # Is spell a taunt
+    ---@field IsPetSummon boolean # Is spell a petsummon
+    ---@field IsTransport boolean # Is spell a transport
+    ---@field IsBardSong boolean # Is spell a bardsong
+    ---@field IsMez boolean # Is spell a mez
+    ---@field IsLull boolean # Is spell a lull
+    ---@field IsCureDisease boolean # Is spell a curedisease
+    ---@field IsCurePoison boolean # Is spell a curepoison
+    ---@field IsCureCurse boolean # Is spell a curecurse
+    ---@field IsSummonItem boolean # Is spell a summonitem
+    ---@field IsInvulnerability boolean # Is spell a invulnerability
+    ---@field IsRessurect boolean # Is spell a ressurect
+    ---@field IsHaste boolean # Is spell a haste
+    ---@field IsSlow boolean # Is spell a slow
+    ---@field IsFeignDeath boolean # Is spell one that triggers FD
+    ---@field IsDeathPact boolean # Is spell a divine intervention line spell
+    ---@field IsTargetGroup boolean # Is spell a groupspell
+    ---@field IsTargetPBAE boolean # Is spell a ae
+    ---@field IsTargetSelf boolean # Is spell target self only
+    ---@field IsTargetSingle boolean # Is spell single target
+    ---@field IsUndeadOnly boolean # Is spell only usable against undead
+    ---@field IsSummonedOnly boolean # Is spell only usable against undead
+    ---@field IsUberDragonsOnly boolean # only valid if
+    ---@field IsUberGiantsOnly boolean # only valid if
+    ---@field IsPlantOnly boolean # only valid if
+    ---@field IsCorpseOnly boolean # only valid if
+    ---@field IsAnimalOnly boolean # only valid if
+    ---@field StunDuration number
+    ---@field DamageAmount number
+    ---@field HealAmount number
+    ---@field BodyType number
+    ---@field SpellGroup number
+    ---@field Ticks number
+    ---@field Targets number
+    ---@field Skill number
     local spellTag = {
-        StunDuration = 0,
+        IsHeal = false,
         IsHot = false,
+        IsDebuff = false,
+        IsBuff = false,
+        IsNuke = false,
         IsDot = false,
+        IsLifetap = false,
+        IsMana = false,
+        IsInvis = false,
+        IsCharm = false,
+        IsSnare = false,
+        IsSow = false,
+        IsFear = false,
+        IsTaunt = false,
+        IsPetSummon = false,
+        IsTransport = false,
+        IsBardSong = false,
+        IsMez = false,
+        IsLull = false,
+        IsCureDisease = false,
+        IsCurePoison = false,
+        IsCureCurse = false,
+        IsSummonItem = false,
+        IsInvulnerability = false,
+        IsRessurect = false,
+        IsHaste = false,
+        IsSlow = false,
+        IsFeignDeath = false,
+        IsDeathPact = false,
+        IsTargetGroup = false,
+        IsTargetPBAE = false,
         IsTargetSelf = false,
-    } ---@type SpellTag
+        IsTargetSingle = false,
+        IsUndeadOnly = false,
+        IsSummonedOnly = false,
+        IsUberDragonsOnly = false,
+        IsUberGiantsOnly = false,
+        IsPlantOnly = false,
+        IsCorpseOnly = false,
+        IsAnimalOnly = false,
+        StunDuration = 0,
+        DamageAmount = 0,
+        HealAmount = 0,
+        BodyType = 0,
+        SpellGroup = 0,
+        Ticks = 0,
+        Targets = 0,
+        Skill = 0,
+    }
 
     local currentSpell = mq.TLO.Spell(spellID)
     if not currentSpell then

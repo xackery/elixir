@@ -1,7 +1,7 @@
 ---@type Mq
 local mq = require('mq')
 
-local Version = "v0.5.6"
+local Version = "v0.5.7"
 
 
 ---@class elixir
