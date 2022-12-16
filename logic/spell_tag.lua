@@ -2,6 +2,7 @@
 local mq = require('mq')
 
 --- local cache of existing spells
+---@type { [number]: SpellTag }
 local spellTagCache = {}
 
 ---initialize spelltag information, this is built to be cached in elixir
