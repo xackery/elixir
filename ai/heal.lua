@@ -195,18 +195,17 @@ function heal:EmergencyCast(elixir, spawnID)
     local aaName = "Divine Arbitration"
     local altAbility = mq.TLO.Me.AltAbility(aaName)
     --local altAbility = 
-    if altAbility() and
-    mq.TLO.Me.AltAbilityReady(aaName) and
+    if mq.TLO.Me.AltAbilityReady(aaName)() and
     altAbility.Spell.Range() <= spawn.Distance() then
-        if mq.TLO.Me.Casting.ID() then
+        if mq.TLO.Me.Casting.ID() and mq.TLO.Me.Casting.ID() ~= altAbility.ID() then
             mq.cmd("/stopcast")
             mq.delay(500)
         end
-        if not mq.TLO.Target() or mq.TLO.Target.ID() ~= spawnID then
-            mq.cmdf('/target id %d', spawnID)
-        end
 
-        mq.cmdf("/doability %d", altAbility.ID())
+        mq.cmdf("/alt act %d", altAbility.ID())
+        if self.IsHealEmergencySoundValid then
+            mq.cmdf("/beep %s/elixir/%s", mq.configDir, elixir.Config.HealEmergencySound)
+        end
         elixir.LastActionOutput = string.format("heal ai emergency using AA %s on %s", aaName, spawn.Name())
         return true, elixir.LastActionOutput
     end
@@ -215,15 +214,15 @@ function heal:EmergencyCast(elixir, spawnID)
     if altAbility() and
     mq.TLO.Me.AltAbilityReady(aaName) and
     altAbility.Spell.Range() <= spawn.Distance() then
-        if mq.TLO.Me.Casting.ID() then
+        if mq.TLO.Me.Casting.ID() and mq.TLO.Me.Casting.ID() ~= altAbility.ID() then
             mq.cmd("/stopcast")
             mq.delay(500)
         end
-        if not mq.TLO.Target() or mq.TLO.Target.ID() ~= spawnID then
-            mq.cmdf('/target id %d', spawnID)
-        end
 
-        mq.cmdf("/doability %d", altAbility.ID())
+        mq.cmdf("/alt act %d", altAbility.ID())
+        if self.IsHealEmergencySoundValid then
+            mq.cmdf("/beep %s/elixir/%s", mq.configDir, elixir.Config.HealEmergencySound)
+        end
         elixir.LastActionOutput = string.format("heal ai emergency casting %s on %s", aaName, spawn.Name())
         return true, elixir.LastActionOutput
     end
@@ -254,6 +253,25 @@ function heal:EmergencyCast(elixir, spawnID)
                 end
             end
         end
+    end
+
+    local aaName = "Exquisite Benediction"
+    local altAbility = mq.TLO.Me.AltAbility(aaName)
+    --local altAbility = 
+    if altAbility() and
+    mq.TLO.Me.AltAbilityReady(aaName)() and
+    altAbility.Spell.Range() <= spawn.Distance() then
+        if mq.TLO.Me.Casting.ID() and mq.TLO.Me.Casting.ID() ~= altAbility.ID() then
+            mq.cmd("/stopcast")
+            mq.delay(500)
+        end
+
+        mq.cmdf("/alt act %d", altAbility.ID())
+        if self.IsHealEmergencySoundValid then
+            mq.cmdf("/beep %s/elixir/%s", mq.configDir, elixir.Config.HealEmergencySound)
+        end        
+        elixir.LastActionOutput = string.format("heal ai emergency using AA %s on %s", aaName, spawn.Name())
+        return true, elixir.LastActionOutput
     end
     return false, lastCastOutput
 end
