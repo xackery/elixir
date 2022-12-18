@@ -105,13 +105,31 @@ function cure:Cure(elixir, spawnID)
     local isCasted = false
     local lastCastOutput = ""
 
+    
+    local aaName = "Radiant Cure"
+    local altAbility = mq.TLO.Me.AltAbility(aaName)
+    --local altAbility = 
+    if mq.TLO.Me.AltAbilityReady(aaName)() then
+        if mq.TLO.Me.Casting.ID() and mq.TLO.Me.Casting.ID() ~= altAbility.ID() then
+            mq.cmd("/stopcast")
+            mq.delay(500)
+        end
+
+        mq.cmdf("/alt act %d", altAbility.ID())
+        if self.IsCureNormalSoundValid then
+            mq.cmdf("/beep %s/elixir/%s", mq.configDir, elixir.Config.CureNormalSound)
+        end
+        elixir.LastActionOutput = string.format("cure ai emergency using AA %s on %s", aaName, spawn.Name())
+        return true, elixir.LastActionOutput
+    end
+
     for i = 1, mq.TLO.Me.NumGems() do
         if ((elixir.Gems[i].Tag.IsCureDisease and isDiseased) or
         (elixir.Gems[i].Tag.IsCurePoison and isPoisoned) or
         (elixir.Gems[i].Tag.IsCureCurse and isCursed)) and
         not elixir.Gems[i].IsIgnored then
             elixir:DebugPrintf("found cure at gem %d will cast on %d", i, spawnID)
-            isCasted, lastCastOutput = heal:CastGem(elixir, spawnID, i)
+            isCasted, lastCastOutput = cure:CastGem(elixir, spawnID, i)
             if isCasted then
                 if self.IsCureNormalSoundValid then
                     mq.cmdf("/beep %s/elixir/%s", mq.configDir, elixir.Config.CureNormalSound)
@@ -143,6 +161,8 @@ function cure:CastGem(elixir, spawnID, gemIndex)
         mq.cmdf('/target id %d', spawnID)
     end
     mq.cmdf("/cast %d", gemIndex)
+    elixir.LastSpellTargetID = spawnID
+    elixir.LastSpellID = spell.ID()
     --mq.delay(5000, WaitOnCasting)
     return true, elixir.LastActionOutput
 end

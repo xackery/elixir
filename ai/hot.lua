@@ -78,7 +78,12 @@ function hot:Cast(elixir)
             elixir:DebugPrintf("found hot at gem %d will cast on %d", i, spawnID)
             isCasted, lastCastOutput = hot:CastGem(elixir, spawnID, i)
             elixir.Gems[i].Output = " hot ai: " .. lastCastOutput
-            if isCasted then return lastCastOutput end
+            if isCasted then
+                if self.IsHotNormalSoundValid then
+                    mq.cmdf("/beep %s/elixir/%s", mq.configDir, elixir.Config.HotNormalSound)
+                end
+                return lastCastOutput
+            end
         end
     end
     return lastCastOutput
@@ -113,6 +118,9 @@ function hot:FocusCast(elixir)
                     -- only append hot ai logic from focus if the fallback flag is disabled
                     elixir.Gems[i].Output = " hot ai: " .. lastCastOutput
                 end
+                if self.IsHotNormalSoundValid then
+                    mq.cmdf("/beep %s/elixir/%s", mq.configDir, elixir.Config.HotNormalSound)
+                end
                 return isCasted, lastCastOutput
             end
         end
@@ -140,6 +148,8 @@ function hot:CastGem(elixir, spawnID, gemIndex)
         mq.cmdf('/target id %d', spawnID)
     end
     mq.cmdf("/cast %d", gemIndex)
+    elixir.LastSpellTargetID = spawnID
+    elixir.LastSpellID = spell.ID()
     self.spawnHotSnapshot[spawnID] = mq.gettime() + 32000
     --mq.delay(5000, WaitOnCasting)
     return true, elixir.LastActionOutput

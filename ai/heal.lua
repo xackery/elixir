@@ -49,11 +49,13 @@ function heal:Cast(elixir)
     local isEmergency = false
     if elixir.Config.IsHealEmergencyAllowed then
         if spawn.PctHPs() <= elixir.Config.HealPctEmergency then
+            elixir:DebugPrintf("player %s is at %d%% HP", spawn.Name(), spawn.PctHPs())
             isEmergency = true
         end
         if elixir.Config.IsHealEmergencyPredictive and
          self.spawnSnapshot[spawnID] and
          self.spawnSnapshot[spawnID] >= spawn.PctHPs()+40 then
+            elixir:DebugPrintf("player %s went down more than 40%% HP (%d%% HP)", spawn.Name(), spawn.PctHPs())
             isEmergency = true
         end
     end
@@ -190,23 +192,21 @@ end
 function heal:EmergencyCast(elixir, spawnID)
     local spawn = mq.TLO.Spawn(spawnID)
     if not spawn then return false, "spawn "..spawnID.." not found" end
-    print("emergency situation detected")
     
     local aaName = "Divine Arbitration"
     local altAbility = mq.TLO.Me.AltAbility(aaName)
     --local altAbility = 
-    if altAbility() and
-    mq.TLO.Me.AltAbilityReady(aaName) and
+    if mq.TLO.Me.AltAbilityReady(aaName)() and
     altAbility.Spell.Range() <= spawn.Distance() then
-        if mq.TLO.Me.Casting.ID() then
+        if mq.TLO.Me.Casting.ID() and mq.TLO.Me.Casting.ID() ~= altAbility.ID() then
             mq.cmd("/stopcast")
             mq.delay(500)
         end
-        if not mq.TLO.Target() or mq.TLO.Target.ID() ~= spawnID then
-            mq.cmdf('/target id %d', spawnID)
-        end
 
-        mq.cmdf("/doability %d", altAbility.ID())
+        mq.cmdf("/alt act %d", altAbility.ID())
+        if self.IsHealEmergencySoundValid then
+            mq.cmdf("/beep %s/elixir/%s", mq.configDir, elixir.Config.HealEmergencySound)
+        end
         elixir.LastActionOutput = string.format("heal ai emergency using AA %s on %s", aaName, spawn.Name())
         return true, elixir.LastActionOutput
     end
@@ -215,15 +215,15 @@ function heal:EmergencyCast(elixir, spawnID)
     if altAbility() and
     mq.TLO.Me.AltAbilityReady(aaName) and
     altAbility.Spell.Range() <= spawn.Distance() then
-        if mq.TLO.Me.Casting.ID() then
+        if mq.TLO.Me.Casting.ID() and mq.TLO.Me.Casting.ID() ~= altAbility.ID() then
             mq.cmd("/stopcast")
             mq.delay(500)
         end
-        if not mq.TLO.Target() or mq.TLO.Target.ID() ~= spawnID then
-            mq.cmdf('/target id %d', spawnID)
-        end
 
-        mq.cmdf("/doability %d", altAbility.ID())
+        mq.cmdf("/alt act %d", altAbility.ID())
+        if self.IsHealEmergencySoundValid then
+            mq.cmdf("/beep %s/elixir/%s", mq.configDir, elixir.Config.HealEmergencySound)
+        end
         elixir.LastActionOutput = string.format("heal ai emergency casting %s on %s", aaName, spawn.Name())
         return true, elixir.LastActionOutput
     end
@@ -255,6 +255,25 @@ function heal:EmergencyCast(elixir, spawnID)
             end
         end
     end
+
+    local aaName = "Exquisite Benediction"
+    local altAbility = mq.TLO.Me.AltAbility(aaName)
+    --local altAbility = 
+    if altAbility() and
+    mq.TLO.Me.AltAbilityReady(aaName)() and
+    altAbility.Spell.Range() <= spawn.Distance() then
+        if mq.TLO.Me.Casting.ID() and mq.TLO.Me.Casting.ID() ~= altAbility.ID() then
+            mq.cmd("/stopcast")
+            mq.delay(500)
+        end
+
+        mq.cmdf("/alt act %d", altAbility.ID())
+        if self.IsHealEmergencySoundValid then
+            mq.cmdf("/beep %s/elixir/%s", mq.configDir, elixir.Config.HealEmergencySound)
+        end        
+        elixir.LastActionOutput = string.format("heal ai emergency using AA %s on %s", aaName, spawn.Name())
+        return true, elixir.LastActionOutput
+    end
     return false, lastCastOutput
 end
 
@@ -285,6 +304,8 @@ function heal:CastGem(elixir, spawnID, gemIndex)
         mq.cmdf('/target id %d', spawnID)
     end
     mq.cmdf("/cast %d", gemIndex)
+    elixir.LastSpellTargetID = spawnID
+    elixir.LastSpellID = spell.ID()
     --mq.delay(5000, WaitOnCasting)
     return true, elixir.LastActionOutput
 end

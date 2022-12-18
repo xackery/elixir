@@ -68,6 +68,8 @@ function nuke:CastGem(elixir, spawnID, gemIndex)
         mq.cmdf('/target id %d', spawnID)
     end
     mq.cmdf("/cast %d", gemIndex)
+    elixir.LastSpellTargetID = spawnID
+    elixir.LastSpellID = spell.ID()
     --mq.delay(5000, WaitOnCasting)
     return true, elixir.LastActionOutput
 end
