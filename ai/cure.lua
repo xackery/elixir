@@ -93,7 +93,7 @@ function cure:Cure(elixir, spawnID)
     local buff = spawn.FindBuff("spa DISEASE")
     local isDiseased = buff ~= nil and buff.ID() and not buff.Beneficial()
     buff = spawn.FindBuff("spa POISON")
-    local isPoisoned = buff ~= nil and buff.ID() and not buff.Beneficial()
+    local isPoisoned = IsPCPoisoned(spawnID)
     buff = spawn.FindBuff("spa CURSE")
     local isCursed = buff ~= nil and buff.ID() and not buff.Beneficial()
     if not isDiseased and
