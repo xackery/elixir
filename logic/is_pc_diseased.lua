@@ -1,35 +1,34 @@
 ---@type Mq
 local mq = require('mq')
 
----Checks if a player is poisoned
+---Checks if a player is diseased
 ---@param spawnID number
----@returns IsPoisoned boolean # Returns true when a spawn appears poisoned
-function IsPCPoisoned(spawnID)
+---@returns IsDiseased boolean # Returns true when a spawn appears diseased
+function IsPCDiseased(spawnID)
     local spawn = mq.TLO.Spawn(spawnID)
     if not spawn() then return false end
     if spawn.Type() ~= "PC" then return false end
-
     if mq.TLO.Target() and mq.TLO.Target.ID() == spawnID then
-        local buff = spawn.FindBuff("spa poison")
+        local buff = spawn.FindBuff("spa disease")
         return buff ~= nil and buff.ID() and not buff.Beneficial()
     end
     if IsPCDannet(spawn.Name()) then
-        --if not mq.TLO.DanNet(spawn.Name()).ObserveSet("Me.Poisoned.ID") then
-        local poisonID = mq.TLO.DanNet(spawn.Name()).Observe("Me.Poisoned.ID")()
-        if poisonID == nil then
-            mq.cmdf('/dobserve %s -q "%s"', spawn.Name(), "Me.Poisoned.ID")
+        --if not mq.TLO.DanNet(spawn.Name()).ObserveSet("Me.Diseased.ID") then
+        local diseaseID = mq.TLO.DanNet(spawn.Name()).Observe("Me.Diseased.ID")()
+        if diseaseID == nil then
+            mq.cmdf('/dobserve %s -q "%s"', spawn.Name(), "Me.Diseased.ID")
             return false
         end
-        return poisonID ~= 'NULL'
+        return diseaseID ~= 'NULL'
     end
 
     if IsPCNetbots(spawn.Name()) then
-        return mq.TLO.NetBots(spawn.Name()).Poisoned() > 0
+        return mq.TLO.NetBots(spawn.Name()).Diseased() > 0
     end
 
     if spawn.Buff(0)() and
     spawn.Buff(0).Staleness() < 60000 then
-        local buff = spawn.FindBuff("spa poison")
+        local buff = spawn.FindBuff("spa diseas")
         return buff ~= nil and buff.ID() and not buff.Beneficial()
     end
     return false

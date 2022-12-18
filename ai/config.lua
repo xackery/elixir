@@ -36,6 +36,7 @@ local mq = require('mq')
 ---@field public IsCureAI boolean # Is Cure AI enabled
 ---@field public IsCureRaid boolean # Is curing raid enabled
 ---@field public IsCureXTarget boolean # Is curing xtarget enabled
+---@field public CureCheckRateSeconds number # How often to check for cures
 ---Hot AI
 ---@field public IsHotAI boolean # Is Hot AI enabled
 ---@field public IsHotRaid boolean # Is Raid heal over times enabled
@@ -146,6 +147,8 @@ config = {
     IsHealRaid = true,
     IsHealPets = true,
     IsHealXTarget = true,
+    IsCureAI = false,
+    --CureCheckRateSeconds = 6,
     IsHotAI = true,
     HotNormalSound = 'hot',
     HotPctNormal = 70,

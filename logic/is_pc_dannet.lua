@@ -13,8 +13,14 @@ function IsPCDannet(name)
         zone = string.format("zone_%s_%s", mq.TLO.EverQuest.Server(), zone)
     end
 
-    for str in string.gmatch(mq.TLO.DanNet.Peers(zone)(), "([^|]+)") do
-        if str == name then return true end
+    local peerName = string.lower(name)
+    local peers = mq.TLO.DanNet.Peers(zone)()
+    if mq.TLO.DanNet.FullNames() then
+        peerName = string.format("%s_%s", mq.TLO.EverQuest.Server(), string.lower(name))
+    end
+    
+    for str in string.gmatch(peers, "([^|]+)") do
+        if str == peerName then return true end
     end
     return false
 end

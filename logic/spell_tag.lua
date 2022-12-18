@@ -1941,7 +1941,7 @@ local function initializeSpellTag(spellID)
             
         end
         if string.len(tags) > 3 then tags = string.sub(tags, 0, -3) end
-        elixir:DebugPrintf("[Elixir] Initialized new spell %s (%d) tags: %s", currentSpell.Name(), spellID, tags)
+        elixir:DebugPrintf("initialized new spell %s (%d) tags: %s", currentSpell.Name(), spellID, tags)
     end
 
     return spellTag

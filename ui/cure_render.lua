@@ -48,6 +48,14 @@ local function elixirRender()
     ImGui.SameLine()
     HelpMarker(string.format("Attempt to use provided alert when a cure is casted. Place a wav in %s\\elixir\\ and type just the base filename in the field", elixir.ConfigPath))
 
+
+    --local isNewSliderValue, isSliderChanged = ImGui.SliderInt("Refresh Rate", elixir.Config.CureCheckRateSeconds, 1, 36, "%d Seconds")
+    --if isSliderChanged then
+    --    isChanged = true
+    --    elixir.Config.CureCheckRateSeconds = isNewSliderValue
+    --end
+    --ImGui.SameLine()
+    --HelpMarker("How often to check for cures on party members.")
     ImGui.EndDisabled() -- cure
 
     ImGui.EndGroup()

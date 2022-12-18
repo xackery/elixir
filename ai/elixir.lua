@@ -2,7 +2,7 @@
 local mq = require('mq')
 require('ai/gem')
 
-local Version = "v0.5.8"
+local Version = "v0.5.9"
 
 
 ---@class elixir
@@ -76,10 +76,20 @@ MovementGlobalCooldown = nil
 
 function elixir:Initialize()
     self.Version = Version
-    print("starting elixir ".. self.Version)
+    elixir:DebugPrintf("starting elixir %s", self.Version)
     --loadConfig()
     --sanitizeConfig()
 
+    --if not mq.TLO.Plugin('mq2dannet').IsLoaded() then
+    --    elixir:DebugPrintf("plugin \ayMQ2DanNet\ax is required. Loading it now.")
+    --    mq.cmd('/plugin mq2dannet noauto')
+    --end
+
+    --if not mq.TLO.Plugin('mq2dannet').IsLoaded() then
+    --    elixir:DebugPrintf("failed to load MQDannet, failing")
+    --    mq.exit()
+    --end
+    
     self.ConfigPath = mq.configDir
     for i = 1, mq.TLO.Me.NumGems() do
         self.Gems[i] = Gem.new()
@@ -298,7 +308,7 @@ function elixir:DebugPrintf(s, ...)
     if not self then return end
     if not self.Config.IsDebugEnabled then return end
     if not self.Config.IsDebugVerboseEnabled then return end
-    print(s:format(...))
+    print("\at[Elixir] "..s:format(...).."\ax")
 end
 
 return elixir

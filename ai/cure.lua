@@ -33,6 +33,8 @@ function cure:Cast(elixir)
     local isCasted = false
     local lastCastOutput = "no cures found"
 
+    --self.cureCooldown = mq.gettime()+(elixir.Config.CureCheckRateSeconds*1000)
+
     isCasted, lastCastOutput = self:Cure(elixir, mq.TLO.Me.ID())
     if isCasted then return lastCastOutput end
 
@@ -90,12 +92,15 @@ function cure:Cure(elixir, spawnID)
     local spawn = mq.TLO.Spawn(spawnID)
     if spawn.Buff(0)() and spawn.Buff(0).Staleness() > 60000 then return false, spawn.Name() .. " too stale" end
 
-    local buff = spawn.FindBuff("spa DISEASE")
-    local isDiseased = buff ~= nil and buff.ID() and not buff.Beneficial()
-    buff = spawn.FindBuff("spa POISON")
+    --local buff = spawn.FindBuff("spa DISEASE")
+    --local isDiseased = buff ~= nil and buff.ID() and not buff.Beneficial()
+    --buff = spawn.FindBuff("spa POISON")
     local isPoisoned = IsPCPoisoned(spawnID)
-    buff = spawn.FindBuff("spa CURSE")
-    local isCursed = buff ~= nil and buff.ID() and not buff.Beneficial()
+    local isDiseased = IsPCDiseased(spawnID)
+    local isCursed = IsPCCursed(spawnID)
+    --buff = spawn.FindBuff("spa CURSE")
+    --local isCursed = buff ~= nil and buff.ID() and not buff.Beneficial()
+
     if not isDiseased and
     not isPoisoned and
     not isCursed then
