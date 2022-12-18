@@ -148,6 +148,8 @@ function hot:CastGem(elixir, spawnID, gemIndex)
         mq.cmdf('/target id %d', spawnID)
     end
     mq.cmdf("/cast %d", gemIndex)
+    elixir.LastSpellTargetID = spawnID
+    elixir.LastSpellID = spell.ID()
     self.spawnHotSnapshot[spawnID] = mq.gettime() + 32000
     --mq.delay(5000, WaitOnCasting)
     return true, elixir.LastActionOutput

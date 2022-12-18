@@ -49,11 +49,13 @@ function heal:Cast(elixir)
     local isEmergency = false
     if elixir.Config.IsHealEmergencyAllowed then
         if spawn.PctHPs() <= elixir.Config.HealPctEmergency then
+            elixir:DebugPrintf("player %s is at %d%% HP", spawn.Name(), spawn.PctHPs())
             isEmergency = true
         end
         if elixir.Config.IsHealEmergencyPredictive and
          self.spawnSnapshot[spawnID] and
          self.spawnSnapshot[spawnID] >= spawn.PctHPs()+40 then
+            elixir:DebugPrintf("player %s went down more than 40%% HP (%d%% HP)", spawn.Name(), spawn.PctHPs())
             isEmergency = true
         end
     end
@@ -190,7 +192,6 @@ end
 function heal:EmergencyCast(elixir, spawnID)
     local spawn = mq.TLO.Spawn(spawnID)
     if not spawn then return false, "spawn "..spawnID.." not found" end
-    print("emergency situation detected")
     
     local aaName = "Divine Arbitration"
     local altAbility = mq.TLO.Me.AltAbility(aaName)
@@ -303,6 +304,8 @@ function heal:CastGem(elixir, spawnID, gemIndex)
         mq.cmdf('/target id %d', spawnID)
     end
     mq.cmdf("/cast %d", gemIndex)
+    elixir.LastSpellTargetID = spawnID
+    elixir.LastSpellID = spell.ID()
     --mq.delay(5000, WaitOnCasting)
     return true, elixir.LastActionOutput
 end

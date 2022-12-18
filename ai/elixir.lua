@@ -28,6 +28,8 @@ local Version = "v0.5.6"
 ---@field public MaxGemCount number # Maximum Number of Gems available, this is updated each pulse
 ---@field public ZoneCooldown number # timer when zone events occur
 ---@field public IsActionCompleted boolean # Has an action completed during this update
+---@field public LastSpellTargetID number # Last spell, what was the target id, used for cancelling when a mob dies etc
+---@field public LastSpellID number # Last casted spell ID
 ---@field public LastOverlayWindowHeight number # last size of overlay window
 ---@field public IsTankInParty boolean # Is there a tank class in the group or raid, used for subtle checks
 ---@field public ConfigPath string # Config path, alias of mq.configDir
@@ -205,7 +207,7 @@ elixir.Config = {
     IsHealPets = true,
     IsHealXTarget = true,
     IsHotAI = true,
-    HotNormalSound = '',
+    HotNormalSound = 'hot',
     HotPctNormal = 70,
     IsStunAI = false,
     IsDebugEnabled = true,
@@ -512,7 +514,6 @@ function elixir:RepopulateAllies()
             pG.Distance() < 200 and
             not pG.Offline() and
             pG.Spawn() then
-                print(pG.Spawn.Name())
                 self.Allies[pG.Spawn.ID()] = pG.Spawn.Name()
             end
         end
@@ -563,9 +564,24 @@ function elixir:Reset()
         elixir.HealAI.FocusName = ""
     end
 
+    if mq.TLO.Me.Casting.ID() == self.LastSpellID then
+        local spawn = mq.TLO.Spawn(elixir.LastSpellTargetID)
+        if not spawn() or spawn.Type() == 'Corpse' then
+            mq.cmdf("/stopcast")
+            elixir:DebugPrintf("stopping cast on %s, they died", spawn.Name())
+            self.LastSpellID = 0
+            self.LastSpellTargetID = 0
+        end
+    end
+    if mq.TLO.Me.Casting.ID() == 0 and not self.LastSpellID then
+        self.LastSpellID = 0
+        self.LastSpellTargetID = 0
+    end
+
     self.IsInGame = (mq.TLO.EverQuest.GameState() == "INGAME")
     self:RepopulateAllies()
 end
+
 
 function WaitOnCasting() return mq.TLO.Me.SpellReady(1)() end
 

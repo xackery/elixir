@@ -109,9 +109,7 @@ function cure:Cure(elixir, spawnID)
     local aaName = "Radiant Cure"
     local altAbility = mq.TLO.Me.AltAbility(aaName)
     --local altAbility = 
-    if mq.TLO.Me.AltAbilityReady(aaName)() and
-    altAbility.Spell.Range() <= spawn.Distance() then
-        print("radiant cure?")
+    if mq.TLO.Me.AltAbilityReady(aaName)() then
         if mq.TLO.Me.Casting.ID() and mq.TLO.Me.Casting.ID() ~= altAbility.ID() then
             mq.cmd("/stopcast")
             mq.delay(500)
@@ -163,6 +161,8 @@ function cure:CastGem(elixir, spawnID, gemIndex)
         mq.cmdf('/target id %d', spawnID)
     end
     mq.cmdf("/cast %d", gemIndex)
+    elixir.LastSpellTargetID = spawnID
+    elixir.LastSpellID = spell.ID()
     --mq.delay(5000, WaitOnCasting)
     return true, elixir.LastActionOutput
 end
