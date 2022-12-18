@@ -33,8 +33,10 @@ function Gem:Refresh(gemIndex)
     self.Tag = GenerateSpellTag(spell.ID())
     if spell.Name() then
         self.SpellName = spell.Name()
+        self.SpellID = spell.ID()
     else
         self.SpellName = "None"
+        self.SpellID = 0
     end
     
     if self.Output ~= "idle" and self.LastOutput == self.Output then

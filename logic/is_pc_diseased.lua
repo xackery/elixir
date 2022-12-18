@@ -8,7 +8,7 @@ function IsPCDiseased(spawnID)
     local spawn = mq.TLO.Spawn(spawnID)
     if not spawn() then return false end
     if spawn.Type() ~= "PC" then return false end
-    if mq.TLO.Target() and mq.TLO.Target.ID() == spawnID then
+    if mq.TLO.Target() and mq.TLO.Target.ID() == spawnID and mq.TLO.Target.BuffsPopulated() then
         local buff = spawn.FindBuff("spa disease")
         return buff ~= nil and buff.ID() and not buff.Beneficial()
     end
@@ -28,7 +28,7 @@ function IsPCDiseased(spawnID)
 
     if spawn.Buff(0)() and
     spawn.Buff(0).Staleness() < 60000 then
-        local buff = spawn.FindBuff("spa diseas")
+        local buff = spawn.FindBuff("spa disease")
         return buff ~= nil and buff.ID() and not buff.Beneficial()
     end
     return false

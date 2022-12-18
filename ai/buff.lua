@@ -112,23 +112,30 @@ end
 ---@returns isSuccess boolean, castOutput string
 function buff:Buff(elixir, spawnID)
     local spawn = mq.TLO.Spawn(spawnID)
+
     if spawn.Buff(0)() and spawn.Buff(0).Staleness() > 60000 then return false, spawn.Name() .. " too stale" end
 
     local isCasted = false
-    local lastCastOutput = ""
+    local lastCastOutput = "no buff spells found"
+    local isBuffFound = false
     for i = 1, mq.TLO.Me.NumGems() do
-        if elixir.Gems[i].Tag.IsBuff and
-        (not elixir.Gems[i].Tag.IsTargetSelf or spawn.ID() == mq.TLO.Me.ID()) and
-        not elixir.Gems[i].IsIgnored then
-            isCasted, lastCastOutput = buff:CastGem(elixir, spawnID, i)
-            elixir.Gems[i].Output = " buff ai: " .. lastCastOutput
-            if isCasted then
-                elixir:DebugPrintf("found buff at gem %d will cast on %s (%d)", i, spawn.Name(), spawnID)
-                return isCasted, lastCastOutput
+        if elixir.Gems[i].Tag.IsBuff then
+            isBuffFound = true
+            if (not elixir.Gems[i].Tag.IsTargetSelf or spawn.ID() == mq.TLO.Me.ID()) and
+            not elixir.Gems[i].IsIgnored and
+            (not mq.TLO.Me.Combat() or elixir.Gems[i].Tag.IsCombatBuff) and
+            IsPCNeedBuff(spawnID, elixir.Gems[i].SpellID) then
+                isCasted, lastCastOutput = buff:CastGem(elixir, spawnID, i)
+                elixir.Gems[i].Output = " buff ai: " .. lastCastOutput
+                if isCasted then
+                    elixir:DebugPrintf("found buff at gem %d will cast on %s (%d)", i, spawn.Name(), spawnID)
+                    return isCasted, lastCastOutput
+                end
             end
         end
     end
-    return false, "no buff spells found"
+    if isBuffFound and lastCastOutput == "no buff spells found" then lastCastOutput = "no one needs buffs" end
+    return false, lastCastOutput
 end
 
 
@@ -145,16 +152,27 @@ function buff:CastGem(elixir, spawnID, gemIndex)
     if not spawn() then return false, string.format("spawn %d not found", spawnID) end
     if not mq.TLO.Me.SpellReady(gemIndex)() then return false, spell.Name().." not ready" end
     if not spell() then return false, "no spell found" end
-    if not spell.StacksSpawn(spawnID)() then return false, spell.Name().." will not stack" end
-    local buff = spawn.Buff(spell.ID())
-    if not buff() then return false, "allies already has buff" end
     if spell.Mana() > mq.TLO.Me.CurrentMana() then return false, string.format("not enough mana (%d/%d)", mq.TLO.Me.CurrentMana(), spell.Mana()) end
     if spawn.Distance() > spell.Range() then return false, "target too far away" end
     if spellTag.IsHaste then
-        local buff = mq.TLO.Spawn(spawnID).FindBuff("spa haste")
-        if buff() and buff.HastePct() >= spell.HastePct() then return false, string.format("already hasted with %s", buff.Name()) end
+        local className = spawn.Class.ShortName()
+        if className ~= "MNK" and
+        className ~= "WAR" and
+        className ~= "SHD" and
+        className ~= "PAL" and
+        className ~= "RNG" and
+        className ~= "BRD" and
+        className ~= "ROG" and
+        className ~= "BST" and
+        className ~= "BER" then
+            return false, "haste not needed"
+        end
     end
 
+    if spellTag.IsMana and
+    spawn.Class.ShortName() ~= "BRD" and
+    not spawn.Class.CanCast() then return false, "mana regen not needed" end
+    
     self.buffCooldown = mq.gettime() + 1000
     elixir.LastActionOutput = string.format("casting %s on %s", spell.Name(), mq.TLO.Spawn(spawnID).Name())
     elixir.isActionCompleted = true

@@ -21,9 +21,10 @@ local function buffRender()
     ImGui.SameLine()
     HelpMarker("Enable Buff AI. This handles all buff logic")
 
+    -- TODO: spell picker https://github.com/aquietone/maui/blob/181fa9094cfbb6ee3dd53ab00da14ed59b7c28e0/ma/start.lua#L342
+
     ImGui.BeginDisabled(not elixir.Config.IsBuffAI)
 
-    -- TODO: buffpctnormal
 
     isNewCheckboxValue, isCheckboxChanged = ImGui.Checkbox("Subtle Casting", elixir.Config.IsBuffSubtleCasting)
     if isCheckboxChanged then

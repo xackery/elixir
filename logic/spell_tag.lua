@@ -15,6 +15,7 @@ local function initializeSpellTag(spellID)
     ---@field IsHot boolean # Is spell a heal over time hot
     ---@field IsDebuff boolean # Is spell a debuff (slows, snares, things that don't break mez)
     ---@field IsBuff boolean # Is spell a buff (beneficial ally spell)
+    ---@field IsCombatBuff boolean # a special tag used for certain buffs given during combat
     ---@field IsNuke boolean # Is spell a nuke (damage component attached)
     ---@field IsDot boolean # Is spell a debuff with damage over time
     ---@field IsLifetap boolean # Is spell a lifetap (subcategory of nuke that heals self too)

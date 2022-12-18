@@ -9,7 +9,7 @@ function IsPCPoisoned(spawnID)
     if not spawn() then return false end
     if spawn.Type() ~= "PC" then return false end
 
-    if mq.TLO.Target() and mq.TLO.Target.ID() == spawnID then
+    if mq.TLO.Target() and mq.TLO.Target.ID() == spawnID and mq.TLO.Target.BuffsPopulated() then
         local buff = spawn.FindBuff("spa poison")
         return buff ~= nil and buff.ID() and not buff.Beneficial()
     end
