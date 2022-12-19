@@ -22,11 +22,13 @@ local spellIcons = {}
 ---@returns spellIcon number # spell icon
 local function spellIcon(spellID)
     if not spellIcons[spellID] then
-        for _, category in ipairs(elixir.SpellPicker.Spells.categories) do
-            for _, subcategory in ipairs(elixir.SpellPicker.Spells[category].Subcategories) do
-                if subcategory.SpellID == spellID then
-                    spellIcons[spellID] = subcategory.SpellIcon
-                    return spellIcons[spellID]
+        for category in pairs(elixir.SpellPicker.Spells) do
+            for subcategory in pairs(elixir.SpellPicker.Spells[category]) do
+                for _, entry in pairs(elixir.SpellPicker.Spells[category][subcategory]) do
+                    if entry.SpellID == spellID then
+                        spellIcons[spellID] = entry.SpellIcon
+                        return spellIcons[spellID]
+                    end
                 end
             end
         end
@@ -65,34 +67,55 @@ end
 ---@alias SpellPickerSpellType 'spell' | 'aa' | 'discipline'
 
 ---@param context string
----@returns isChanged boolean, spellType SpellPickerSpellType, spellId number
-local function drawSpellPicker(context)
-    if not elixir then return end
-    if not elixir.SpellPicker then return end
-    if not ImGui.BeginPopupContextItem(string.format('##spellMenu-%s', context)) then return end
+---@param spellID number
+---@param title string
+---@returns isChanged boolean, spellType SpellPickerSpellType, newSpellID number, newSpellName string
+function DrawSpellPicker(context, spellID, title)
+    if not spellID then spellID = 0 end
+    local iconSize = {30, 30} -- default icon size
+    local x, y = ImGui.GetCursorPos()
+    ImGui.BeginGroup()
+    if spellID == 0 then
+        ImGui.DrawTextureAnimation(animRedWndPieces, iconSize[1], iconSize[2])
+    else
+        animSpellIcons:SetTextureCell(spellIcon(spellID))
+        ImGui.DrawTextureAnimation(animSpellIcons, iconSize[1], iconSize[2])
+    end
+    ImGui.SameLine()
+    ImGui.SetCursorPosY(ImGui.GetCursorPosY()+6)
+    ImGui.Text(title)
+    ImGui.SetCursorPos(x, y)
+    if ImGui.InvisibleButton(string.format('##spell-%s', context), 30, 30) then
+        print("invis clicked")
+    end
+    ImGui.SetCursorPos(x, y+30)
+    ImGui.EndGroup()
+
+    if not elixir then return false, 'aa', 0, 'None' end
+    if not elixir.SpellPicker then return false, 'aa', 0, 'None' end
+    if not ImGui.BeginPopupContextItem(string.format('##spellMenu-%s', context)) then return false, 'aa', 0, 'None' end
     
     local isChanged = false
     local spellID = 0
+    local spellName = 'None'
     local spellType = 'spell' ---@type SpellPickerSpellType
-    if #elixir.SpellPicker.Spells and ImGui.BeginMenu(string.format('Spells##spellMenu-%s', context)) then
-        for _, category in ipairs(elixir.SpellPicker.Spells.categories) do
-            -- Spell Subcategories submenu
+    if elixir.SpellPicker.Spells and ImGui.BeginMenu(string.format('Spells##spellMenu-%s', context)) then
+        for category, categoryValue in pairs(elixir.SpellPicker.Spells) do
             if ImGui.BeginMenu(string.format("%s##spellMenu-%s-%s", category, category, context)) then
-                for _, subcategory in ipairs(elixir.SpellPicker.Spells[category].Subcategories) do
-                    -- Subcategory Spell menu
+                for subcategory, subcategoryValue in pairs(categoryValue) do
                     local menuHeight = -1
-                    if #elixir.SpellPicker.Spells[category].Subcategories[subcategory] > 25 then
+                    if #subcategoryValue> 25 then
                         menuHeight = ImGui.GetTextLineHeight()*25
                     end
                     ImGui.SetNextWindowSize(250, menuHeight)
-                    if #elixir.SpellPicker.Spells[category].Subcategories[subcategory] > 0 and
-                    ImGui.BeginMenu(string.format("%s##%s-%s", subcategory, subcategory, context)) then
-                        for _, spell in ipairs(elixir.SpellPicker.Spells[category].Subcategories[subcategory]) do
+                    if ImGui.BeginMenu(string.format("%s##%s-%s", subcategory, subcategory, context)) then
+                        for _, spell in pairs(subcategoryValue) do
                             -- spell[1]=level, spell[2]=name
                             setSpellTextColor(spell.TargetType)
                             if ImGui.MenuItem(string.format("%d - %s##spellMenu-%s-%s", spell.SpellLevel, spell.CleanName, spell.CleanName, context)) then
                                 isChanged = true
                                 spellID = spell.SpellID
+                                spellName = spell.CleanName
                                 spellType = 'spell'
                             end
                             ImGui.PopStyleColor()
@@ -106,7 +129,7 @@ local function drawSpellPicker(context)
         ImGui.EndMenu()
     end
 
-    if #elixir.SpellPicker.AltAbilities and ImGui.BeginMenu(string.format('Alt Abilities##altMenu-%s', context)) then
+    if elixir.SpellPicker.AltAbilities and ImGui.BeginMenu(string.format('Alt Abilities##altMenu-%s', context)) then
         for _, type in ipairs(aatypes) do
             if elixir.SpellPicker.AltAbilities[type] then
                 local menuHeight = -1
@@ -120,6 +143,7 @@ local function drawSpellPicker(context)
                         if ImGui.MenuItem(string.format("%s##altMenu-%s-%s", altAbility.Name, altAbility.Name, context)) then
                             isChanged = true
                             spellID = altAbility.SpellID
+                            spellName = altAbility.SpellName
                             spellType = 'aa'
                         end
                         ImGui.PopStyleColor()
@@ -131,7 +155,7 @@ local function drawSpellPicker(context)
         ImGui.EndMenu()
     end
 
-    if #elixir.SpellPicker.Disciplines and ImGui.BeginMenu(string.format('Combat Abilities##discMenu-%s', context)) then
+    if elixir.SpellPicker.Disciplines and #elixir.SpellPicker.Disciplines and ImGui.BeginMenu(string.format('Combat Abilities##discMenu-%s', context)) then
         for _, category in ipairs(elixir.SpellPicker.Disciplines.categories) do
             -- Spell Subcategories submenu
             if ImGui.BeginMenu(string.format("%s##discMenu-%s-%s", category, category, context)) then
@@ -150,6 +174,7 @@ local function drawSpellPicker(context)
                             if ImGui.MenuItem(string.format("%d - %s##discMenu-%s-%s", spell.SpellLevel, spell.CleanName, spell.CleanName, context)) then
                                 isChanged = true
                                 spellID = spell.SpellID
+                                spellName = spell.CleanName
                                 spellType = 'discipline'
                             end
                             ImGui.PopStyleColor()
@@ -163,28 +188,5 @@ local function drawSpellPicker(context)
         ImGui.EndMenu()
     end
     ImGui.EndPopup()
-    return isChanged, spellType, spellID
-end
-
----@param context string # Context is a UUID for the button
----@param spellID number
-function DrawSpellButton(context, spellID)
-    local iconSize = {30,30} -- default icon size
-    local x, y = ImGui.GetCursorPos()
-    if spellID == 0 then
-        ImGui.DrawTextureAnimation(animRedWndPieces, iconSize[1], iconSize[2])
-        ImGui.SetCursorPosX(x+2)
-        ImGui.SetCursorPosY(y+2)
-        iconSize = {26,26}
-    else
-        ImGui.BeginGroup()
-        ImGui.Button(string.format('##spell-%s', context))
-        animSpellIcons:SetTextureCell(spellIcon(spellID))
-        ImGui.DrawTextureAnimation(animSpellIcons, iconSize[1], iconSize[2])
-        ImGui.EndGroup()
-    end
-    local isChanged, category, newSpellID = drawSpellPicker(context)
-    if isChanged then
-        elixir:DebugPrintf("spell picker got %s %d", category, newSpellID)
-    end
+    return isChanged, spellType, spellID, spellName
 end

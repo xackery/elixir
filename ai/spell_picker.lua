@@ -4,15 +4,15 @@ local mq = require('mq')
 local aaTypes = {'General','Archtype','Class','Special','Focus','Merc'}
 
 ---@class SpellSubcategory
+---@field Entries { [number]: SpellEntry[] }
+
+---@class SpellEntry
 ---@field CleanName string # spell clean name (no rk etc)
 ---@field SpellName string # spell name
 ---@field SpellLevel number # spell level
 ---@field SpellID number # spell ID
 ---@field SpellIcon number # spell icon
 ---@field TargetType string # spell target type
-
----@class SpellCategory
----@field Subcategories { [string]: SpellSubcategory[] } # spell subcategories
 
 ---@class AAEntry
 ---@field Name string # AA Name
@@ -33,72 +33,82 @@ local aaTypes = {'General','Archtype','Class','Special','Focus','Merc'}
 ---@field SpellLevel number # spell level
 
 ---@class SpellPicker
----@field Spells { [string]: SpellCategory } # spell categories
+---@field Spells table<string, table<string, SpellEntry[]>> # spell categories
 ---@field AltAbilities { [string]: AAEntry[] } # AA types
----@field Disciplines { [string]: SpellCategory } # AA types
+---@field Disciplines table<string, table<string, SpellEntry[]>> # AA types
 local spellPicker = {}
 
----@param spellID number
----@returns SpellSubcategory
-function spellPicker:SpellByID(spellID)
-    
-end
-
 ---@param spell spell|number
-function spellPicker:AddSpellToMap(spell)
+---@returns isAdded boolean
+function spellPicker:AddSpell(spell)
     local sp = self
-    if not spell() then return end
+    if not spell() then return false end
     local cat = spell.Category()
     local subcat = spell.Subcategory()
     if not sp.Spells[cat] then
-        local category = {} ---@type SpellCategory
-        table.insert(sp.Spells[cat], category)
+        sp.Spells[cat] = {}
     end
-    if not sp.Spells[cat].Subcategories[subcat] then
-        local subCategory = {} ---@type SpellSubcategory
-        table.insert(sp.Spells[cat].Subcategories[subcat], subCategory)
+    if not sp.Spells[cat][subcat] then
+        sp.Spells[cat][subcat] = {}
     end
-    local subCategory = {} ---@type SpellSubcategory
-    subCategory.SpellLevel = spell.Level()
+    local spellEntry = {} ---@type SpellEntry
+    spellEntry.SpellLevel = spell.Level()
     local name = spell.Name():gsub(' Rk%..*', '')
-    subCategory.CleanName = name
-    subCategory.SpellName = spell.Name()
-    subCategory.SpellID = spell.ID()
-    subCategory.TargetType = spell.TargetType()
-    table.insert(spellPicker[cat].Subcategory[subcat], subCategory)
+    spellEntry.CleanName = name
+    spellEntry.SpellName = spell.Name()
+    spellEntry.SpellID = spell.ID()
+    spellEntry.SpellIcon = spell.SpellIcon()
+    spellEntry.TargetType = spell.TargetType()
+    
+    sp.Spells[cat][subcat][spell.ID()] = spellEntry
+    return true
 end
 
 ---@param sp SpellPicker
+---@returns spellCount number
 local function RefreshSpells(sp)
+    local spellCount = 0
+    local emptyCount = 0
     sp.Spells = {}
     for slot = 1, 1120 do
-        local spell = mq.TLO.Me.Book(slot)
-        sp:AddSpellToMap(spell)
+        if emptyCount < 10 then
+            local spell = mq.TLO.Me.Book(slot)
+            if not spell() then
+                emptyCount = emptyCount + 1
+            end
+            if sp:AddSpell(spell) then spellCount = spellCount + 1 end
+        end
     end
-    sp:SortMap(sp.Spells)
+    --sp:SortMap(sp.Spells)
+    return spellCount
 end
 
 ---@param sp SpellPicker
 ---@param aa altability
+---@returns isAdded boolean
 local function addAAToMap(sp, aa)
-    if not aa.Spell() then return end
+    if not aa.Spell() then return false end
     local type = aaTypes[aa.Type()]
     local aaEntry = {} ---@type AAEntry
     aaEntry.Name = aa.Name()
     aaEntry.SpellName = aa.Spell.Name()
+    if aaEntry.SpellName == nil then aaEntry.SpellName = aa.Name() end
     aaEntry.SpellID = aa.Spell.ID()
     aaEntry.TargetType = aa.Spell.TargetType()
+    aaEntry.SpellIcon = aa.Spell.SpellIcon()
     if not sp.AltAbilities[type] then
         sp.AltAbilities[type] = {} ---@type AAEntry[]
     end
     table.insert(sp.AltAbilities[type], aaEntry)
+    return true
 end
 
 ---@param sp SpellPicker
 ---@param discID number
+---@returns isAdded boolean
 local function AddDisciplineToMap(sp, discID)
     local discipline = mq.TLO.Me.CombatAbility(discID)
-    if not discipline() then return end
+    if not discipline() then return false end
     local cat = discipline.Category()
     local subcat = discipline.Subcategory()
 
@@ -114,40 +124,48 @@ local function AddDisciplineToMap(sp, discID)
     subCategory.DisciplineLevel = discipline.Level()
     local name = discipline.Name():gsub(' Rk%..*', '')
     subCategory.CleanName = name
-    subCategory.DisciplineName = discipline.Name()
+    subCategory.DisciplineName = discipline.Name()    
     subCategory.TargetType = discipline.TargetType()
     table.insert(spellPicker[cat].Subcategory[subcat], subCategory)
+    return true
 end
 
 ---@param sp SpellPicker
 local function RefreshAAs(sp)
+    -- TODO: AA's take forever to load, so skipping for now
+    if true then return 0 end
+    local aaCount = 0
     sp.AltAbilities = {}
-    for aaID = 1, 10000 do
-        addAAToMap(sp, mq.TLO.Me.AltAbility(aaID))
+    for aaID = 1, 30000 do
+        if addAAToMap(sp, mq.TLO.Me.AltAbility(aaID)) then aaCount = aaCount + 1 end
     end
     for _, type in ipairs(aaTypes) do
         if sp.AltAbilities[type] then
-            table.sort(sp.AltAbilities[type], function(a,b) return a[1] < b[1] end)
+            table.sort(sp.AltAbilities[type], function(a, b) return a.Name < b.Name end)
         end
     end
+    return aaCount
 end
 
 ---@param sp SpellPicker
 local function RefreshDisciplines(sp)
+    local discCount = 0
     local discID = 1
     repeat
-        AddDisciplineToMap(sp, discID)
+        if AddDisciplineToMap(sp, discID) then discCount = discCount + 1 end
         discID = discID + 1
     until mq.TLO.Me.CombatAbility(discID)() == nil
     sp:SortMap(sp.Spells)
+    return discCount
 end
 
 --- Refreshes data in spell picker
 function spellPicker:Refresh()
-    print("refreshing spellPicker")
-    RefreshSpells(spellPicker)
-    RefreshAAs(spellPicker)
-    RefreshDisciplines(spellPicker)
+    elixir:DebugPrintf("loading spellpicker")
+    local spellCount = RefreshSpells(spellPicker)
+    local aaCount = RefreshAAs(spellPicker)
+    local disciplineCount = RefreshDisciplines(spellPicker)
+    elixir:DebugPrintf("spellpicker loaded %d spells, %d AAs, and %d disciplines", spellCount, aaCount, disciplineCount)
 end
 
 -- Sort spells by level
@@ -164,10 +182,10 @@ end
 
 function spellPicker:SortMap(map)
     -- sort categories and subcategories alphabetically, spellPicker by level
-    table.sort(map.categories)
-    for category,subcategories in pairs(map) do
+    table.sort(map)
+    for category, subcategories in pairs(map) do
         if category ~= 'categories' then
-            table.sort(map[category].subcategories)
+            table.sort(map[category])
             for subcategory, subcatSpell in pairs(subcategories) do
                 if subcategory ~= 'subcategories' then
                     table.sort(subcatSpell, SpellSorter)

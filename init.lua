@@ -14,7 +14,7 @@ local function OnNewSpellMemmed(line, spellName)
     if type(spellNum) ~= 'number' then return end
     local spell = mq.TLO.Me.Book(spellNum)
     if not spell() then return end
-    elixir.SpellPicker:AddSpellToMap(spell)
+    elixir.SpellPicker:AddSpell(spell)
     elixir.SpellPicker:SortMap(elixir.SpellPicker.Spells)
 end
 

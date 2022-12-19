@@ -25,6 +25,7 @@ local mq = require('mq')
 ---@field public HealFocusNormalSound string # sound to play on normal heal alert
 ---@field public HealFocusName string # If set, Heal AI will focus on provided spawn name
 ---@field public HealFocusSpellID number # If set, Heal AI will focus on provided spell ID on focus ID
+---@field public HealFocusSpellName string # name of spell on heal focus
 ---@field public HealFocusPctNormal number # If set, Heal AI will focus on healing a target with pct normal heal
 ---@field public IsHealFocusEmergencyAllowed boolean  # If set, Heal AI will try use emergeny heals
 ---@field public HealFocusPctEmergency number # If set, Heal AI will focus on healing a target with pct emergency heal
@@ -134,6 +135,8 @@ config = {
     IsHealFocus = false,
     HealFocusPctNormal = 50,
     HealFocusPctEmergency = 30,
+    HealFocusSpellID = 0,
+    HealFocusSpellName = 'None',
     IsHealFocusEmergencyAllowed = false,
     IsHealEmergencyAllowed = true,
     IsHealEmergencyPredictive = true,

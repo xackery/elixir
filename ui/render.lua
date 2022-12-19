@@ -4,6 +4,8 @@ local mq = require('mq')
 --- @type ImGui
 require 'ImGui'
 
+require('ui/spell_picker_render')
+
 local settingsElement = require('ui/settings_render')
 
 local archeryElement = require('ui/archery_render')

@@ -88,7 +88,12 @@ local function elixirRender()
     HelpMarker(string.format("Attempt to use provided alert when a heal is casted. Place a wav in %s\\elixir\\ and type just the base filename in the field", elixir.ConfigPath))
 
 
-    --- TODO: Focus Healing Spell ID
+    local isNewSpellButtonValue, newSpellCategory, newSpellID, newSpellName = DrawSpellPicker("healFocusSpell", elixir.Config.HealFocusSpellID, string.format("Focus Spell: %s", elixir.Config.HealFocusSpellName))
+    if isNewSpellButtonValue then
+        elixir:DebugPrintf("spell picker got %s %s %d", newSpellCategory, newSpellName, newSpellID)
+        elixir.Config.HealFocusSpellID = newSpellID
+        elixir.Config.HealFocusSpellName = newSpellName
+    end
 
     isNewCheckboxValue, isCheckboxChanged = ImGui.Checkbox("Focus Emergency Healing", elixir.Config.IsHealFocusEmergencyAllowed)
     if isCheckboxChanged then
@@ -96,7 +101,7 @@ local function elixirRender()
         isChanged = true
     end
     ImGui.SameLine()
-    HelpMarker("When enabled, try to use emergency heals to try to save a bad situation.\nNote that this will priotize AAs such Divine Arbitration, Celestial Regeneration, and quick casting spells that are not mana efficient to try to save the at risk focused ally.")
+    HelpMarker("When enabled, try to use emergency heals to try to save a bad situation.\nNote that this will prioritize AAs such Divine Arbitration, Celestial Regeneration, and quick casting spells that are not mana efficient to try to save the at risk focused ally.")
 
     --ImGui.BeginDisabled(elixir.Config.IsHealAI and elixir.Config.IsHealFocus and not elixir.Config.IsHealFocusEmergencyAllowed)
     
@@ -186,7 +191,6 @@ local function elixirRender()
     end
     ImGui.SameLine()
     HelpMarker("When enabled, if aggro is greater than 80% on any XTarget, do not try to heal at risk of getting attacked.\nNote that Emergency Healing, if enabled, will ignore Subtle Casting since the situation is considered dire.")
-
 
     isNewCheckboxValue, isCheckboxChanged = ImGui.Checkbox("Emergency Healing", elixir.Config.IsHealEmergencyAllowed)
     if isCheckboxChanged then
