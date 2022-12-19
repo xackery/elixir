@@ -6,6 +6,20 @@ require ('ui')
 
 elixir:Initialize()
 
+---@param line string # line that triggered event
+---@param spellName string # Spell Name being memorized
+local function OnNewSpellMemmed(line, spellName)
+    elixir:DebugPrintf("new spell %s memorized, updating spell list", spellName)
+    local spellNum = mq.TLO.Me.Book(spellName)
+    if type(spellNum) ~= 'number' then return end
+    local spell = mq.TLO.Me.Book(spellNum)
+    if not spell() then return end
+    elixir.SpellPicker:AddSpellToMap(spell)
+    elixir.SpellPicker:SortMap(elixir.SpellPicker.Spells)
+end
+
+mq.event('NewSpellMemmed', '#*#You have finished scribing #1#.', OnNewSpellMemmed)
+
 mq.imgui.init('elixir', OverlayRender)
 mq.imgui.init('elixir', SettingsRender)
 

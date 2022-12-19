@@ -2,7 +2,7 @@
 local mq = require('mq')
 require('ai/gem')
 
-local Version = "v0.5.9"
+local Version = "v0.5.10"
 
 
 ---@class elixir
@@ -26,6 +26,7 @@ local Version = "v0.5.9"
 ---@field public AttackAI attack # Attack AI reference
 ---@field public ArcheryAI archery # Archery AI reference
 ---@field public CharmAI charm # Charm AI reference
+---@field public SpellPicker SpellPicker # Spell picker for UI context menu
 ---@field public MaxGemCount number # Maximum Number of Gems available, this is updated each pulse
 ---@field public ZoneCooldown number # timer when zone events occur
 ---@field public IsActionCompleted boolean # Has an action completed during this update
@@ -55,6 +56,7 @@ elixir = {
     NukeAI = require('ai/nuke'),
     StunAI = require('ai/stun'),
     TargetAI = require('ai/target'),
+    SpellPicker = require('ai/spell_picker'),
     ZoneCooldown = 0,
     IsActionCompleted = false,
     lastZoneID = 0,
@@ -94,6 +96,8 @@ function elixir:Initialize()
     for i = 1, mq.TLO.Me.NumGems() do
         self.Gems[i] = Gem.new()
     end
+
+    self.SpellPicker:Refresh()
 
     self.MaxGemCount = mq.TLO.Me.NumGems()
     self.LastActionOutput = ''
