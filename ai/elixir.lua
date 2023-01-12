@@ -2,9 +2,6 @@
 local mq = require('mq')
 require('ai/gem')
 
-local Version = "v0.5.10"
-
-
 ---@class elixir
 ---@field public IsTerminated boolean # Is Elixir about to exit?
 ---@field public IsEQInForeground boolean # Is EQ currently focused
@@ -35,6 +32,7 @@ local Version = "v0.5.10"
 ---@field public LastOverlayWindowHeight number # last size of overlay window
 ---@field public IsTankInParty boolean # Is there a tank class in the group or raid, used for subtle checks
 ---@field public ConfigPath string # Config path, alias of mq.configDir
+---@field public IniPath string # Save INI path
 ---@field private lastZoneID number # Last Zone ID snapshotted on update
 elixir = {
     LastActionOutput = '',
@@ -63,6 +61,7 @@ elixir = {
     SettingsTabIndex = 16,
     LastOverlayWindowHeight = 0,
     IsTankInParty = false,
+    IniPath = string.format("elixir_%s_%s.ini", mq.TLO.EverQuest.Server(), mq.TLO.Me.Name()),
 }
 
 elixir.Config = require('ai/config')
@@ -76,10 +75,13 @@ Button = {}
 ---@type number
 MovementGlobalCooldown = nil
 
-function elixir:Initialize()
-    self.Version = Version
+---@param version string # version nubmer of elixir
+function elixir:Initialize(version)
+    self.Version = version
     elixir:DebugPrintf("starting elixir %s", self.Version)
-    --loadConfig()
+    --if not self.Config:Load() then
+    --    self.Config:Save()
+    --end
     --sanitizeConfig()
 
     --if not mq.TLO.Plugin('mq2dannet').IsLoaded() then
@@ -105,7 +107,7 @@ function elixir:Initialize()
         print(mq.TLO.Me.Class.Name() .. " Mode Settings")
         elixir.Config.IsHealAI = true
         elixir.Config.HealNormalSound = 'heal'
-        elixir.Config.IsHotAI = true
+        elixir.Config.IsHotAI = true        
         elixir.Config.IsCureAI = true
         elixir.Config.IsDebuffAI = true
         elixir.Config.IsDebuffSubtleCasting = true
@@ -248,7 +250,7 @@ function elixir:Reset()
     end
     if elixir.Config.HealFocusID ~= 0 and mq.TLO.Spawn(elixir.Config.HealFocusID)() == nil then
         elixir.Config.HealFocusID = 0
-        elixir.HealAI.FocusName = ""
+        elixir.HealAI.HealFocusName = ""
     end
 
     if mq.TLO.Me.Casting.ID() and
@@ -281,6 +283,8 @@ function elixir:Update()
         if self.lastZoneID ~= 0 then
             self.ZoneCooldown = mq.gettime() + 5000
         end
+        self.HealAI.HealFocusName = 'None'
+        self.HealAI.HealFocusID = 0
         self.lastZoneID = mq.TLO.Zone.ID()
     end
     if not self.IsInGame then return end

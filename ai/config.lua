@@ -178,8 +178,8 @@ config = {
     IsCharmAI = false,
     IsTargetAI = false,
     IsTargetPetAssist = true,
-    TargetAssistMaxRange = 40,
-    IsBuffAI = false,
+    TargetAssistMaxRange = 100,
+    IsBuffAI = true,
     BuffPctNormal = 95,
     IsBuffSubtleCasting = true,
     IsDotAI = false,
@@ -214,9 +214,31 @@ config = {
     IsGem13Ignored = false,
 }
 
-local function loadConfig()
-    local path = string.format("elixir/%s_%s.lua", mq.TLO.EverQuest.Server(), mq.TLO.Me.Name())
-    
+---@returns isLoaded boolean
+function config:Load()
+    local path = elixir.IniPath
+    if not mq.TLO.Ini.File(elixir.IniPath).Exists() then return false end
+    for entry in pairs(elixir.Config) do
+        elixir.Config[entry] = mq.TLO.Ini.File(elixir.IniPath).Section("Config").Key(entry).Value()
+        print(entry.. ", "..elixir.Config[entry])
+    end
+    return true
+end
+
+function config:Save()
+    local path = elixir.IniPath
+    print("saving "..path)
+    for entry, value in pairs(elixir.Config) do
+        if type(value) ~= 'function' then 
+            printf("%s, %s %s", entry, tostring(value), type(value))
+            mq.cmdf('/ini "%s" "%s" "%s" "%s"', elixir.Config, "Config", entry, value)
+        end
+    end
+    return true
+end
+
+local function loadPickleConfig()
+    local path = elixir.IniPath
     if os.rename(path, path) and true then
         mq.pickle(path, elixir.Config)
         print("created new config data")
