@@ -32,7 +32,7 @@ local function elixirRender()
     ImGui.SameLine()
     HelpMarker("When enabled, healing will focus a single spawn that you wish to prioritize over normal healing logic.\nThis is used for cases such as a primary tank needing priority heals while AEs are going off.")
     
-    --ImGui.BeginDisabled(elixir.Config.IsHealAI and not elixir.Config.IsHealFocus)
+    ImGui.BeginDisabled(not elixir.Config.IsHealFocus)
 
     --- TODO: Focus Healing Name
     --local isNewComboValue, isComboChanged = ImGui.Combo("Focus Target", elixir.Config.HealFocusID, elixir.Allies, #elixir.Allies)
@@ -43,6 +43,7 @@ local function elixirRender()
             if ImGui.Selectable(name, isSelected) then -- fixme: selectable
                 elixir.Config.HealFocusID = spawnID
                 elixir.HealAI.HealFocusName = name
+                elixir:DebugPrintf("heal focus set to %s", name)
             end
 
             -- Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
@@ -55,6 +56,7 @@ local function elixirRender()
     end
     ImGui.SameLine()
     HelpMarker("Target to heal focus.")
+    ImGui.BeginDisabled(elixir.Config.HealFocusID == 0)
     
     ImGui.PushItemWidth(100)
     local isNewSliderValue, isSliderChanged = ImGui.SliderInt("Focus Normal Threshold", elixir.Config.HealFocusPctNormal, 1, 99, "%d%% HP")
@@ -103,10 +105,17 @@ local function elixirRender()
     ImGui.SameLine()
     HelpMarker("When enabled, try to use emergency heals to try to save a bad situation.\nNote that this will prioritize AAs such Divine Arbitration, Celestial Regeneration, and quick casting spells that are not mana efficient to try to save the at risk focused ally.")
 
-    --ImGui.BeginDisabled(elixir.Config.IsHealAI and elixir.Config.IsHealFocus and not elixir.Config.IsHealFocusEmergencyAllowed)
-    
-    --- TODO: Focus Healing Emergency Pct
+    ImGui.BeginDisabled(not elixir.Config.IsHealFocusEmergencyAllowed)
 
+    ImGui.PushItemWidth(100)
+    isNewSliderValue, isSliderChanged = ImGui.SliderInt("Focus Emergency Threshold", elixir.Config.HealFocusPctEmergency, 1, 99, "%d%% HP")
+    if isSliderChanged then
+        isChanged = true
+        elixir.Config.HealFocusPctEmergency = isNewSliderValue
+    end
+    ImGui.SameLine()
+    HelpMarker("Use emergency heals on focus target when they meet this threshold")
+    
     isNewCheckboxValue, isCheckboxChanged = ImGui.Checkbox("Focus Predict Emergencies", elixir.Config.IsHealFocusEmergencyPredictive)
     if isCheckboxChanged then
         elixir.Config.IsHealFocusEmergencyPredictive = isNewCheckboxValue
@@ -115,8 +124,8 @@ local function elixirRender()
     ImGui.SameLine()
     HelpMarker("When enabled, Emergency Healing will also be used in cases an ally takes 40% of max health in a short amount of time, predicting a potential emergency situation, but may cause prematurely healing too.")
 
-    --ImGui.EndDisabled() -- focus emergency heal
-
+    ImGui.EndDisabled() -- focus emergency heal
+    ImGui.EndDisabled() -- elixir.Config.HealFocusID
     isNewCheckboxValue, isCheckboxChanged = ImGui.Checkbox("Focus Fallback Healing", elixir.Config.IsHealFocusFallback)
     if isCheckboxChanged then
         elixir.Config.IsHealFocusFallback = isNewCheckboxValue
@@ -125,10 +134,10 @@ local function elixirRender()
     ImGui.SameLine()
     HelpMarker("When enabled, if focus target does not meet requirement to need a heal, fallback to trying to heal other allies.")
 
-    --ImGui.EndDisabled() -- heal focus
+    ImGui.EndDisabled() -- heal focus
 
     ImGui.Separator()
-
+    ImGui.BeginDisabled(elixir.Config.IsHealFocus and not elixir.Config.IsHealFocusFallback)
     ImGui.PushItemWidth(100)
     local isNewSliderValue, isSliderChanged = ImGui.SliderInt("Normal Threshold", elixir.Config.HealPctNormal, 1, 99, "%d%% HP")
     if isSliderChanged then
@@ -245,7 +254,7 @@ local function elixirRender()
     HelpMarker("When enabled, Emergency Healing will also be used in cases an ally takes 40% of max health in a short amount of time, predicting a potential emergency situation, but may cause prematurely healing too.")
     
     --ImGui.EndDisabled() -- heal emergency
-
+    ImGui.EndDisabled() -- heal focus enabled no fallback
     ImGui.EndDisabled() -- heal
 
     ImGui.EndGroup()

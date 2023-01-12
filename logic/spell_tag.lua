@@ -10,6 +10,10 @@ local spellTagCache = {}
 ---@return SpellTag # SpellTag generated or an error
 local function initializeSpellTag(spellID)
 
+    ---@class ReagentEntry
+    ---@field ItemID number
+    ---@field Count number
+
     ---@class SpellTag # Keeps cached information about a spell
     ---@field IsHeal boolean # Is spell a heal
     ---@field IsHot boolean # Is spell a heal over time hot
@@ -60,6 +64,7 @@ local function initializeSpellTag(spellID)
     ---@field Ticks number
     ---@field Targets number
     ---@field Skill number
+    ---@field Reagents ReagentEntry[]
     local spellTag = {
         IsHeal = false,
         IsHot = false,
@@ -109,6 +114,7 @@ local function initializeSpellTag(spellID)
         Ticks = 0,
         Targets = 0,
         Skill = 0,
+        Reagents = {},
     }
 
     local currentSpell = mq.TLO.Spell(spellID)
@@ -131,6 +137,8 @@ local function initializeSpellTag(spellID)
                 if currentSpell.Duration.Ticks() > 1 and currentSpell.Duration.Ticks() < 20 then
                     spellTag.IsHot = true
                     spellTag.HealAmount = base * currentSpell.Duration.Ticks()
+                else
+                    spellTag.IsBuff = true
                 end
             end
 
@@ -203,7 +211,7 @@ local function initializeSpellTag(spellID)
             spellTag.IsBuff = true
         end
 
-        if attr == 14 then -- SPA_MANA
+        if attr == 15 then -- SPA_MANA
             spellTag.IsMana = true
             spellTag.IsBuff = true
         end
@@ -1928,13 +1936,23 @@ local function initializeSpellTag(spellID)
 	if currentSpell.TargetType() == "Single" then spellTag.IsTargetSingle = true end
     if currentSpell.TargetType() == "Line of Sight" then spellTag.IsTargetSingle = true end
 
-
+    for i = 1, 4 do
+        if currentSpell.ReagentID(i)() > 0 and
+        currentSpell.ReagentCount(i)() > 0 then
+            table.insert(spellTag.Reagents, {
+                ItemID = currentSpell.ReagentID(i)(),
+                Count = currentSpell.ReagentCount(i)(),
+            })
+        end
+    end
     if elixir.Config.IsDebugVerboseEnabled then
         local tags = ""
         for property, value in pairs(spellTag) do
             if value then
                 if type(value) == "number" then
                     if value ~= 0 then tags = string.format("%s%s=%d, ", tags, property, value) end
+                elseif type(value) == "table" then
+                    tags = string.format("%s%s, ", tags, property)
                 else
                     tags = tags .. property .. ", "
                 end
@@ -1962,4 +1980,13 @@ function GenerateSpellTag(spellID)
     spellTag = initializeSpellTag(spellID)
     spellTagCache[spellID] = spellTag
     return spellTag
+end
+
+---@param spellTag SpellTag
+---@returns meetReagents boolean
+function IsSpellTagReagentsMet(spellTag)
+    for _, reagent in ipairs(spellTag.Reagents) do
+        if mq.TLO.FindItemCount(reagent.ItemID)() < reagent.Count then return false end
+    end
+    return true
 end

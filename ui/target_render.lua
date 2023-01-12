@@ -13,9 +13,9 @@ local function targetRender()
     local isChanged
     ImGui.BeginGroup()
 
-    local isNewCheckboxValue, isCheckboxChanged = ImGui.Checkbox(targetElement.Title, elixir.Config.IsHealAI)
+    local isNewCheckboxValue, isCheckboxChanged = ImGui.Checkbox(targetElement.Title, elixir.Config.IsTargetAI)
     if isCheckboxChanged then
-        elixir.Config.IsHealAI = isNewCheckboxValue
+        elixir.Config.IsTargetAI = isNewCheckboxValue
         isChanged = true
     end
     ImGui.SameLine()
@@ -42,7 +42,7 @@ local function targetRender()
 
     --TODO TargetAssistMaxRange
 
-    ImGui.EndDisabled()
+    ImGui.EndDisabled() -- IsTargetAI
     ImGui.EndGroup()
     return isChanged
 end

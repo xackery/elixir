@@ -5,12 +5,12 @@ local mq = require('mq')
 ---@param spawnID number
 ---@param spellID number # spell of buff to inspect
 ---@returns IsBuffed boolean # Returns true when buff won't land on target
-function IsPCNeedBuff(spawnID, spellID)
+function DoesPCNeedBuff(spawnID, spellID)
     local spawn = mq.TLO.Spawn(spawnID)
     if not spawn() then return false end
     if spawn.Type() ~= "PC" then return false end
     if mq.TLO.Target() and mq.TLO.Target.ID() == spawnID and mq.TLO.Target.BuffsPopulated() then
-        return mq.TLO.Spell(spellID).StacksTarget() and not mq.TLO.Target.Buff(mq.TLO.Spell(spellID).Name())
+        return mq.TLO.Spell(spellID).StacksTarget() and not mq.TLO.Target.Buff(mq.TLO.Spell(spellID).Name())()
     end
 
     if IsPCDannet(spawn.Name()) then

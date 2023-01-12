@@ -9,7 +9,7 @@ require('logic')
 ---@field public IsHealEmergencySoundValid boolean # Is the heal emergency sound a valid one?
 ---@field public IsHealfocusNormalSoundValid boolean # Is the heal normal sound a valid one?
 ---@field public IsHealFocusEmergencySoundValid boolean # Is the heal emergency sound a valid one?
----@field public FocusName string # used to cache what is current focus, based on FocusID, refreshed in elixir:Reset
+---@field public HealFocusName string # used to cache what is current focus, based on FocusID, refreshed in elixir:Reset
 ---@field private healCooldown number # cooldown timer to use heal
 ---@field private spawnSnapshot number[] # snapshot of spawn HPs for predictive healing
 heal = {

@@ -66,7 +66,7 @@ end
 
 ---@param sp SpellPicker
 ---@returns spellCount number
-local function RefreshSpells(sp)
+local function refreshSpells(sp)
     local spellCount = 0
     local emptyCount = 0
     sp.Spells = {}
@@ -131,14 +131,29 @@ local function AddDisciplineToMap(sp, discID)
 end
 
 ---@param sp SpellPicker
+---@returns aaCount number
 local function RefreshAAs(sp)
-    -- TODO: AA's take forever to load, so skipping for now
-    if true then return 0 end
     local aaCount = 0
     sp.AltAbilities = {}
-    for aaID = 1, 30000 do
-        if addAAToMap(sp, mq.TLO.Me.AltAbility(aaID)) then aaCount = aaCount + 1 end
+
+    if not mq.TLO.Window("AAWindow")() then return 0 end
+
+    local sections = {
+        {Page = "AAW_GeneralPage", List = "AAW_GeneralList"},
+        {Page = "AAW_ArchetypePage", List = "AAW_ArchList"},
+        {Page = "AAW_ClassPage", List = "AAW_ClassList"},
+        {Page = "AAW_SpecialPage", List = "AAW_SpecialList"},
+    }
+
+    for _, section in pairs(sections) do
+        local control = mq.TLO.Window("AAWindow").Child("AAW_Subwindows").Child(section.Page).Child(section.List)
+        local rows = control.Items()
+        for i = 0, rows do
+            local aaName = control.List(i)
+            if addAAToMap(sp, mq.TLO.Me.AltAbility(aaName)) then aaCount = aaCount + 1 end
+        end
     end
+
     for _, type in ipairs(aaTypes) do
         if sp.AltAbilities[type] then
             table.sort(sp.AltAbilities[type], function(a, b) return a.Name < b.Name end)
@@ -162,7 +177,7 @@ end
 --- Refreshes data in spell picker
 function spellPicker:Refresh()
     elixir:DebugPrintf("loading spellpicker")
-    local spellCount = RefreshSpells(spellPicker)
+    local spellCount = refreshSpells(spellPicker)
     local aaCount = RefreshAAs(spellPicker)
     local disciplineCount = RefreshDisciplines(spellPicker)
     elixir:DebugPrintf("spellpicker loaded %d spells, %d AAs, and %d disciplines", spellCount, aaCount, disciplineCount)

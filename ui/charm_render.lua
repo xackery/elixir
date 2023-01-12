@@ -22,21 +22,21 @@ local function charmRender()
     ImGui.SameLine()
     HelpMarker("Enable Charm AI. This handles all charm logic")
 
+    ImGui.BeginDisabled(not elixir.Config.IsCharmAI)
     ImGui.Text("Current Charm Target: ".. elixir.CharmAI.Name)
-    --ImGui.BeginDisabled(not elixir.Config.IsCharmAI)
-    --ImGui.BeginDisabled(elixir.CharmAI.IsCurrentTargetValid)
     if ImGui.Button("Set Charm Target To "..elixir.CharmAI.LastTargetName) then
-       elixir.CharmAI.ID = elixir.CharmAI.LastTargetID
-       elixir.CharmAI.Name = elixir.CharmAI.LastTargetName
+        elixir.CharmAI.ID = elixir.CharmAI.LastTargetID
+        elixir.CharmAI.Name = elixir.CharmAI.LastTargetName
     end
-    --ImGui.EndDisabled() -- elixir.CharmAI.IsCurrentTargetValid
-    --ImGui.BeginDisabled(elixir.CharmAI.ID == 0)
+    ImGui.EndDisabled() -- elixir.CharmAI.IsCurrentTargetValid
+    ImGui.BeginDisabled(elixir.CharmAI.ID == 0)
     if ImGui.Button("Clear Charm") then
        elixir.CharmAI.ID = 0
        elixir.CharmAI.Name = "None"
     end
-    --ImGui.EndDisabled() -- elixir.CharmAI.ID == 0
-    --ImGui.EndDisabled() -- elixir.Config.IsCharmAI
+    ImGui.EndDisabled() -- elixir.CharmAI.ID == 0
+
+    ImGui.EndDisabled() -- elixir.Config.IsCharmAI
 
     ImGui.EndGroup()
     return isChanged
