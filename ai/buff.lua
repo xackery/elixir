@@ -121,15 +121,30 @@ function buff:Buff(elixir, spawnID)
     for i = 1, mq.TLO.Me.NumGems() do
         if elixir.Gems[i].Tag.IsBuff then
             isBuffFound = true
-            if (not elixir.Gems[i].Tag.IsTargetSelf or spawn.ID() == mq.TLO.Me.ID()) and
-            not elixir.Gems[i].IsIgnored and
-            (not mq.TLO.Me.Combat() or elixir.Gems[i].Tag.IsCombatBuff) and
-            IsPCNeedBuff(spawnID, elixir.Gems[i].SpellID) then
-                isCasted, lastCastOutput = buff:CastGem(elixir, spawnID, i)
-                elixir.Gems[i].Output = " buff ai: " .. lastCastOutput
-                if isCasted then
-                    elixir:DebugPrintf("found buff at gem %d will cast on %s (%d)", i, spawn.Name(), spawnID)
-                    return isCasted, lastCastOutput
+            
+            local isValid = true
+
+            if elixir.Gems[i].Tag.IsTargetPet and
+                not mq.TLO.Me.Pet() then
+                isValid = false
+            end
+
+            if not IsSpellTagReagentsMet(elixir.Gems[i].Tag) then
+                elixir.Gems[i].Output = " buff ai: spell components missing"
+                isValid = false
+            end
+
+            if isValid then
+                if (not elixir.Gems[i].Tag.IsTargetSelf or spawn.ID() == mq.TLO.Me.ID()) and
+                not elixir.Gems[i].IsIgnored and
+                (not mq.TLO.Me.Combat() or elixir.Gems[i].Tag.IsCombatBuff) and
+                DoesPCNeedBuff(spawnID, elixir.Gems[i].SpellID) then
+                    isCasted, lastCastOutput = buff:CastGem(elixir, spawnID, i)
+                    elixir.Gems[i].Output = " buff ai: " .. lastCastOutput
+                    if isCasted then
+                        elixir:DebugPrintf("found buff at gem %d will cast on %s (%d)", i, spawn.Name(), spawnID)
+                        return isCasted, lastCastOutput
+                    end
                 end
             end
         end
@@ -137,7 +152,6 @@ function buff:Buff(elixir, spawnID)
     if isBuffFound and lastCastOutput == "no buff spells found" then lastCastOutput = "no one needs buffs" end
     return false, lastCastOutput
 end
-
 
 ---Attempts to cast a buff gem
 ---@param elixir elixir

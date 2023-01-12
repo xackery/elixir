@@ -4,7 +4,7 @@ local mq = require('mq')
 require('ai/elixir')
 require ('ui')
 
-elixir:Initialize()
+elixir:Initialize("v0.5.10")
 
 ---@param line string # line that triggered event
 ---@param spellName string # Spell Name being memorized
