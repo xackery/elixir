@@ -43,12 +43,8 @@ function debuff:Cast(elixir)
     for i = 1, mq.TLO.Me.NumGems() do
         if elixir.Gems[i].Tag.IsDebuff and
             not elixir.Gems[i].IsIgnored and
-            (self.Retries[elixir.Gems[i].SpellID] > 0 and self.Retries[elixir.Gems[i].SpellID] < elixir.Config.DebuffRetryCount) then
-            if not self.Retries[elixir.Gems[i].SpellID] then
-                self.Retries[elixir.Gems[i].SpellID] = 0
-            else
-                self.Retries[elixir.Gems[i].SpellID] = self.Retries[elixir.Gems[i].SpellID] + 1
-            end
+            elixir.Gems[i].SpellID > 0 then
+
             isCasted, lastCastOutput = debuff:CastGem(elixir, spawn.ID(), i)
             elixir.Gems[i].Output = "debuff ai: " .. lastCastOutput
             if isCasted then return lastCastOutput end
@@ -63,12 +59,15 @@ end
 ---@param gemIndex number
 ---@returns isSuccess boolean, castOutput string
 function debuff:CastGem(elixir, spawnID, gemIndex)
-
-    local spellTag = elixir.Gems[gemIndex].Tag
-
     local spell = mq.TLO.Me.Gem(gemIndex)
     if not mq.TLO.Me.SpellReady(gemIndex)() then return false, spell.Name().." not ready" end
-    if not spell() then return false, "no spell found" end    
+    if not spell() then return false, "no spell found" end
+    local spellTag = elixir.Gems[gemIndex].Tag
+    if not self.Retries[spell.ID()] then self.Retries[spell.ID()] = 0 end
+    if self.Retries[spell.ID()] >= elixir.Config.DebuffRetryCount then
+        return false, string.format("too many retries %d/%d", self.Retries[spell.ID()], elixir.Config.DebuffRetryCount)
+    end
+
     if not IsTargetValidBodyType(elixir.Gems[gemIndex].Tag) then return false, "invalid target body type" end
     if spell.Mana() > mq.TLO.Me.CurrentMana() then return false, "not enough mana (" .. mq.TLO.Me.CurrentMana() .. "/" .. spell.Mana() .. ")" end    
     if not spell.StacksTarget() then return false, "debuff won't stack on target" end
@@ -96,6 +95,8 @@ function debuff:CastGem(elixir, spawnID, gemIndex)
         mq.cmdf('/target id %d', spawnID)
     end
     mq.cmdf("/cast %d", gemIndex)
+    
+    self.Retries[spell.ID()] = self.Retries[spell.ID()] + 1
     elixir.LastSpellTargetID = spawnID
     elixir.LastSpellID = spell.ID()
     --mq.delay(5000, WaitOnCasting)

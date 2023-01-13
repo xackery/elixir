@@ -132,9 +132,7 @@ local function initializeSpellTag(spellID)
                 if currentSpell.Duration.Ticks() == 0 then
                     spellTag.IsHeal = true
                     spellTag.HealAmount = base
-                end
-
-                if currentSpell.Duration.Ticks() > 1 and currentSpell.Duration.Ticks() < 20 then
+                elseif currentSpell.Duration.Ticks() > 1 and currentSpell.Duration.Ticks() < 20 then
                     spellTag.IsHot = true
                     spellTag.HealAmount = base * currentSpell.Duration.Ticks()
                 else
@@ -256,7 +254,7 @@ local function initializeSpellTag(spellID)
 
         if attr == 31 then -- SPA_MEZ
             spellTag.IsMez = true
-            spellTag.IsDebuff = true
+            spellTag.IsDebuff = false
         end
 
         if attr == 32 then -- SPA_CREATE_ITEM
@@ -1935,6 +1933,7 @@ local function initializeSpellTag(spellID)
 	if currentSpell.TargetType() == "Targeted AE" then spellTag.IsTargetAE = true end
 	if currentSpell.TargetType() == "Single" then spellTag.IsTargetSingle = true end
     if currentSpell.TargetType() == "Line of Sight" then spellTag.IsTargetSingle = true end
+    if spellTag.IsDebuff and spellTag.IsBuff then spellTag.IsBuff = false end
 
     for i = 1, 4 do
         if currentSpell.ReagentID(i)() > 0 and
