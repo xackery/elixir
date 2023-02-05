@@ -75,9 +75,7 @@ function SettingsRender()
     for selectionIndex, element in pairs(elements) do
         local _, isClicked = ImGui.Selectable(element.Title, elixir.SettingsTabIndex == selectionIndex)
         if isClicked then elixir.SettingsTabIndex = element.Index end
-        if element.IsTitleSeparatorAfter then
-            ImGui.Separator()
-        end
+        if element.IsTitleSeparatorAfter then ImGui.Separator() end
     end
     ImGui.EndChild()
     ImGui.EndGroup()
@@ -91,7 +89,7 @@ function SettingsRender()
     end
     ImGui.End()
     if isChanged then
-        --TODO: update config
+        ConfigSave(elixir.Config)
     end
 end
 

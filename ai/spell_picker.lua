@@ -111,7 +111,9 @@ local function AddDisciplineToMap(sp, discID)
     if not discipline() then return false end
     local cat = discipline.Category()
     local subcat = discipline.Subcategory()
-
+    if not sp.Disciplines then
+        return true
+    end
     if not sp.Disciplines[cat] then
         local category = {} ---@type SpellCategory
         table.insert(sp.Disciplines[cat], category)

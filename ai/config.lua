@@ -121,189 +121,191 @@ local mq = require('mq')
 ---@field public IsMeditateAI boolean # Is Meditate AI enabled
 ---@field public IsMeditateDuringCombat boolean # Is Meditate allowed if in combat
 ---@field public IsMeditateSubtle boolean # Is Meditate AI supposed to sit when high aggro
-config = {
-    IsElixirAI = true,
-    IsEQInForeground = true,
-    IsInGame = false,
-    IsElixirOverlayUI = true,
-    IsElixirDisabledOnFocus = false,
-    IsElixirSettingsUIOpen = true,
-    IsHealAI = true,
-    HealPctNormal = 50,
-    HealPctEmergency = 30,
-    IsHealSubtleCasting = false,
-    IsHealFocus = false,
-    HealFocusPctNormal = 50,
-    HealFocusPctEmergency = 30,
-    HealFocusSpellID = 0,
-    HealFocusSpellName = 'None',
-    IsHealFocusEmergencyAllowed = false,
-    IsHealEmergencyAllowed = true,
-    IsHealEmergencyPredictive = true,
-    IsHealFocusEmergencyPredictive = false,
-    IsHealFocusFallback = false,
-    HealNormalSound = 'heal',
-    HealFocusNormalSound = 'heal',
-    HealEmergencySound = 'heal',
-    HealFocusEmergencySound = 'heal',
-    CureNormalSound = 'cure',
-    IsHealRaid = true,
-    IsHealPets = true,
-    IsHealXTarget = true,
-    IsCureAI = false,
-    --CureCheckRateSeconds = 6,
-    IsHotAI = true,
-    HotNormalSound = 'hot',
-    HotPctNormal = 70,
-    IsStunAI = false,
-    IsDebugEnabled = true,
-    IsMeditateAI = true,
-    IsArcheryAI = false,
-    IsArcherySubtle = false,
-    IsAttackAI = false,
-    IsAttackSubtle = false,
-    IsMezAI = false,
-    IsMoveAI = false,
-    IsMoveToMeleeInCombat = true,
-    IsMoveToArcheryInCombat = false,
-    IsMoveToStrategyPointInCombat = false,
-    MoveToStrategyPointX = 0,
-    MoveToStrategyPointY = 0,
-    MoveToStrategyPointZ = 0,
-    IsMoveToTank = false,
-    IsMoveToCamp = false,
-    MoveToCampX = 0,
-    MoveToCampY = 0,
-    MoveToCampZ = 0,
-    IsCharmAI = false,
-    IsTargetAI = false,
-    IsTargetPetAssist = true,
-    TargetAssistMaxRange = 100,
-    IsBuffAI = true,
-    BuffPctNormal = 95,
-    IsBuffSubtleCasting = true,
-    IsDotAI = false,
-    DotPctNormal = 95,
-    IsDotSubtleCasting = true,
-    DotPctMinMana = 50,
-    IsNukeAI = false,
-    NukePctNormal = 95,
-    NukePctMinMana = 50,
-    IsNukeSubtleCasting = true,
-    IsDebuffAI = false,
-    DebuffPctNormal = 95,
-    IsDebuffSubtleCasting = true,
-    IsDebuffFearKiting = true,
-    IsDebuffNoSnareFearKiting = false,
-    DebuffPctMinMana = 20,
-    DebuffRetryCount = 2,
-    IsMeditateDuringCombat = true,
-    IsDebugVerboseEnabled = true,
-    IsGem1Ignored = false,
-    IsGem2Ignored = false,
-    IsGem3Ignored = false,
-    IsGem4Ignored = false,
-    IsGem5Ignored = false,
-    IsGem6Ignored = false,
-    IsGem7Ignored = false,
-    IsGem8Ignored = false,
-    IsGem9Ignored = false,
-    IsGem10Ignored = false,
-    IsGem11Ignored = false,
-    IsGem12Ignored = false,
-    IsGem13Ignored = false,
-}
 
----@returns isLoaded boolean
-function config:Load()
-    local path = elixir.IniPath
-    if not mq.TLO.Ini.File(elixir.IniPath).Exists() then return false end
-    for entry in pairs(elixir.Config) do
-        elixir.Config[entry] = mq.TLO.Ini.File(elixir.IniPath).Section("Config").Key(entry).Value()
-        print(entry.. ", "..elixir.Config[entry])
-    end
-    return true
-end
 
-function config:Save()
-    local path = elixir.IniPath
-    print("saving "..path)
-    for entry, value in pairs(elixir.Config) do
-        if type(value) ~= 'function' then 
-            printf("%s, %s %s", entry, tostring(value), type(value))
-            mq.cmdf('/ini "%s" "%s" "%s" "%s"', elixir.Config, "Config", entry, value)
-        end
-    end
-    return true
-end
-
-local function loadPickleConfig()
-    local path = elixir.IniPath
-    if os.rename(path, path) and true then
-        mq.pickle(path, elixir.Config)
-        print("created new config data")
-        return
-    end
-
-    local configData, err = loadfile(mq.configDir..'/'..path)
-    if err then
-        print("failed to load settings "..path..": "..err)
-        mq.pickle(path, elixir.Config)
-        return
-    end
-    if configData then elixir.Config = configData() end
-    print(string.format("loaded existing config data: %d", elixir.Config.HealPctNormal))
-end
-
-local function sanitizeConfig()
+--- configSanitize will sanitize config settings and ensure they're valid
+---@param cfg Config
+---@return Config
+local function configSanitize(cfg)
     local isNotSanitized = false
-    if elixir.Config.HealPctNormal > 99 then
-        print(string.format("HealPctNormal from config was too high at %d, reducing to 99", elixir.Config.HealPctNormal))
-        elixir.Config.HealPctNormal = 99
+    if cfg.HealPctNormal > 99 then
+        print(string.format("HealPctNormal from config was too high at %d, reducing to 99", cfg.HealPctNormal))
+        cfg.HealPctNormal = 99
         isNotSanitized = true
     end
-    if elixir.Config.HealPctNormal < 5 then
-        elixir.Config.HealPctNormal = 5
+    if cfg.HealPctNormal < 5 then
+        cfg.HealPctNormal = 5
         isNotSanitized = true
     end
-    if elixir.Config.HealPctEmergency > 99 then
-        elixir.Config.HealPctEmergency = 99
+    if cfg.HealPctEmergency > 99 then
+        cfg.HealPctEmergency = 99
         isNotSanitized = true
     end
-    if elixir.Config.HealPctEmergency < 5 then
-        elixir.Config.HealPctEmergency = 5
-        isNotSanitized = true
-    end
-
-    if elixir.Config.HealFocusPctNormal > 99 then
-        print(string.format("HealFocusPctNormal from config was too high at %d, reducing to 99", elixir.Config.HealFocusPctNormal))
-        elixir.Config.HealFocusPctNormal = 99
-        isNotSanitized = true
-    end
-    if elixir.Config.HealFocusPctNormal < 5 then
-        elixir.Config.HealFocusPctNormal = 5
+    if cfg.HealPctEmergency < 5 then
+        cfg.HealPctEmergency = 5
         isNotSanitized = true
     end
 
-    if not elixir.Config.HealFocusPctEmergency or type(elixir.Config.HealFocusPctEmergency) ~= "number" then
+    if cfg.HealFocusPctNormal > 99 then
+        print(string.format("HealFocusPctNormal from config was too high at %d, reducing to 99", cfg.HealFocusPctNormal))
+        cfg.HealFocusPctNormal = 99
+        isNotSanitized = true
+    end
+    if cfg.HealFocusPctNormal < 5 then
+        cfg.HealFocusPctNormal = 5
+        isNotSanitized = true
+    end
+
+    if not cfg.HealFocusPctEmergency or type(cfg.HealFocusPctEmergency) ~= "number" then
         print("HealFocusPctEmergency from config was invalid, resetting")
-        elixir.Config.HealFocusPctEmergency = 30
+        cfg.HealFocusPctEmergency = 30
         isNotSanitized = true
     end
 
-    if elixir.Config.HealFocusPctEmergency > 99 then
-        print(string.format("HealFocusPctEmergency from config was too high at %d, reducing to 99", elixir.Config.HealFocusPctEmergency))
-        elixir.Config.HealFocusPctEmergency = 99
+    if cfg.HealFocusPctEmergency > 99 then
+        print(string.format("HealFocusPctEmergency from config was too high at %d, reducing to 99", cfg.HealFocusPctEmergency))
+        cfg.HealFocusPctEmergency = 99
         isNotSanitized = true
     end
-    if elixir.Config.HealFocusPctEmergency < 5 then
-        elixir.Config.HealFocusPctEmergency = 5
+    if cfg.HealFocusPctEmergency < 5 then
+        cfg.HealFocusPctEmergency = 5
         isNotSanitized = true
     end
     if isNotSanitized then
         local path = string.format("elixir_%s_%s.lua", mq.TLO.EverQuest.Server(), mq.TLO.Me.Name())
-        mq.pickle(path, elixir.Config)
+        mq.pickle(path, cfg)
     end
+    return cfg
 end
 
-return config
+---@returns config Config
+function ConfigLoad()
+    local path = elixir.LuaPath
+    ---@type Config
+    local cfg = {}
+    if os.rename(path, path) and true then
+        cfg = ConfigDefault()
+        mq.pickle(path, cfg)
+        print("created new config data")
+        return cfg
+    end
+
+    local cfgFunc, err = loadfile(mq.configDir..'/'..path)
+    if err then
+        print("failed to load settings "..path..": "..err)
+        cfg = ConfigDefault()
+        mq.pickle(path, cfg)
+        return cfg
+    end
+    if cfgFunc then
+        cfg = cfgFunc()
+        cfg = configSanitize(cfg)
+    end
+    printf("healpctnormal: %d", cfg.HealPctNormal)
+    return cfg
+end
+
+--- Saves the config to disk
+function ConfigSave(cfg)
+    local path = elixir.LuaPath
+    printf("saved to %s", path)
+    mq.pickle(path, cfg)
+    return
+end
+
+
+---@return Config
+function ConfigDefault()
+    return {
+        IsElixirAI = true,
+        IsEQInForeground = true,
+        IsInGame = false,
+        IsElixirOverlayUI = true,
+        IsElixirDisabledOnFocus = false,
+        IsElixirSettingsUIOpen = true,
+        IsHealAI = true,
+        HealPctNormal = 50,
+        HealPctEmergency = 30,
+        IsHealSubtleCasting = false,
+        IsHealFocus = false,
+        HealFocusPctNormal = 50,
+        HealFocusPctEmergency = 30,
+        HealFocusSpellID = 0,
+        HealFocusSpellName = 'None',
+        IsHealFocusEmergencyAllowed = false,
+        IsHealEmergencyAllowed = true,
+        IsHealEmergencyPredictive = true,
+        IsHealFocusEmergencyPredictive = false,
+        IsHealFocusFallback = false,
+        HealNormalSound = 'heal',
+        HealFocusNormalSound = 'heal',
+        HealEmergencySound = 'heal',
+        HealFocusEmergencySound = 'heal',
+        CureNormalSound = 'cure',
+        IsHealRaid = true,
+        IsHealPets = true,
+        IsHealXTarget = true,
+        IsCureAI = false,
+        --CureCheckRateSeconds = 6,
+        IsHotAI = true,
+        HotNormalSound = 'hot',
+        HotPctNormal = 70,
+        IsStunAI = false,
+        IsDebugEnabled = true,
+        IsMeditateAI = true,
+        IsArcheryAI = false,
+        IsArcherySubtle = false,
+        IsAttackAI = false,
+        IsAttackSubtle = false,
+        IsMezAI = false,
+        IsMoveAI = false,
+        IsMoveToMeleeInCombat = true,
+        IsMoveToArcheryInCombat = false,
+        IsMoveToStrategyPointInCombat = false,
+        MoveToStrategyPointX = 0,
+        MoveToStrategyPointY = 0,
+        MoveToStrategyPointZ = 0,
+        IsMoveToTank = false,
+        IsMoveToCamp = false,
+        MoveToCampX = 0,
+        MoveToCampY = 0,
+        MoveToCampZ = 0,
+        IsCharmAI = false,
+        IsTargetAI = false,
+        IsTargetPetAssist = true,
+        TargetAssistMaxRange = 100,
+        IsBuffAI = true,
+        BuffPctNormal = 95,
+        IsBuffSubtleCasting = true,
+        IsDotAI = false,
+        DotPctNormal = 95,
+        IsDotSubtleCasting = true,
+        DotPctMinMana = 50,
+        IsNukeAI = false,
+        NukePctNormal = 95,
+        NukePctMinMana = 50,
+        IsNukeSubtleCasting = true,
+        IsDebuffAI = false,
+        DebuffPctNormal = 95,
+        IsDebuffSubtleCasting = true,
+        IsDebuffFearKiting = true,
+        IsDebuffNoSnareFearKiting = false,
+        DebuffPctMinMana = 20,
+        DebuffRetryCount = 2,
+        IsMeditateDuringCombat = true,
+        IsDebugVerboseEnabled = true,
+        IsGem1Ignored = false,
+        IsGem2Ignored = false,
+        IsGem3Ignored = false,
+        IsGem4Ignored = false,
+        IsGem5Ignored = false,
+        IsGem6Ignored = false,
+        IsGem7Ignored = false,
+        IsGem8Ignored = false,
+        IsGem9Ignored = false,
+        IsGem10Ignored = false,
+        IsGem11Ignored = false,
+        IsGem12Ignored = false,
+        IsGem13Ignored = false,
+    }
+end

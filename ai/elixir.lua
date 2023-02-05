@@ -1,6 +1,7 @@
 ---@type Mq
 local mq = require('mq')
 require('ai/gem')
+require('ai/config')
 
 ---@class elixir
 ---@field public IsTerminated boolean # Is Elixir about to exit?
@@ -32,7 +33,7 @@ require('ai/gem')
 ---@field public LastOverlayWindowHeight number # last size of overlay window
 ---@field public IsTankInParty boolean # Is there a tank class in the group or raid, used for subtle checks
 ---@field public ConfigPath string # Config path, alias of mq.configDir
----@field public IniPath string # Save INI path
+---@field public LuaPath string # Save INI path
 ---@field private lastZoneID number # Last Zone ID snapshotted on update
 elixir = {
     LastActionOutput = '',
@@ -61,10 +62,8 @@ elixir = {
     SettingsTabIndex = 16,
     LastOverlayWindowHeight = 0,
     IsTankInParty = false,
-    IniPath = string.format("elixir_%s_%s.ini", mq.TLO.EverQuest.Server(), mq.TLO.Me.Name()),
+    LuaPath = string.format("elixir_%s_%s.ini", mq.TLO.EverQuest.Server(), mq.TLO.Me.Name()),
 }
-
-elixir.Config = require('ai/config')
 
 ---@class Button
 ---@field IsIgnored bool # Ignore this gem for AI
@@ -78,10 +77,9 @@ MovementGlobalCooldown = nil
 ---@param version string # version nubmer of elixir
 function elixir:Initialize(version)
     self.Version = version
+    elixir.Config = ConfigLoad()
+    ConfigSave(elixir.Config)
     elixir:DebugPrintf("starting elixir %s", self.Version)
-    --if not self.Config:Load() then
-    --    self.Config:Save()
-    --end
     --sanitizeConfig()
 
     --if not mq.TLO.Plugin('mq2dannet').IsLoaded() then
@@ -93,7 +91,7 @@ function elixir:Initialize(version)
     --    elixir:DebugPrintf("failed to load MQDannet, failing")
     --    mq.exit()
     --end
-    
+
     self.ConfigPath = mq.configDir
     for i = 1, mq.TLO.Me.NumGems() do
         self.Gems[i] = Gem.new()
@@ -103,38 +101,6 @@ function elixir:Initialize(version)
 
     self.MaxGemCount = mq.TLO.Me.NumGems()
     self.LastActionOutput = ''
-    if mq.TLO.Me.Class.ShortName() == "CLR" then
-        print(mq.TLO.Me.Class.Name() .. " Mode Settings")
-        elixir.Config.IsHealAI = true
-        elixir.Config.HealNormalSound = 'heal'
-        elixir.Config.IsHotAI = true        
-        elixir.Config.IsCureAI = true
-        elixir.Config.IsDebuffAI = true
-        elixir.Config.IsDebuffSubtleCasting = true
-        elixir.Config.IsNukeAI = true
-        elixir.Config.IsNukeSubtleCasting = true
-        elixir.Config.NukePctMinMana = 80
-        elixir.Config.IsMeditateAI = true
-        elixir.Config.IsMeditateDuringCombat = true
-        elixir.Config.IsMeditateSubtle = true
-        elixir.Config.IsTargetAI = true
-    end    
-    if mq.TLO.Me.Class.ShortName() == "ENC" then
-        print(mq.TLO.Me.Class.Name() .. " Mode Settings")
-        elixir.Config.IsHealAI = false
-        elixir.Config.IsHotAI = false
-        elixir.Config.IsDotAI = false
-        elixir.Config.IsDotSubtleCasting = false
-        elixir.Config.IsDebuffAI = true
-        elixir.Config.IsDebuffSubtleCasting = false
-        elixir.Config.IsNukeAI = true
-        elixir.Config.IsNukeSubtleCasting = false
-        elixir.Config.NukePctMinMana = 20
-        elixir.Config.IsMeditateAI = true
-        elixir.Config.IsMeditateDuringCombat = true
-        elixir.Config.IsMeditateSubtle = true
-        elixir.Config.IsTargetAI = true
-    end
 
     local f = io.open(string.format("%s/elixir/%s.wav", mq.configDir, elixir.Config.HealNormalSound))
     if f ~= nil then
@@ -314,8 +280,8 @@ end
 ---@param ... any
 function elixir:DebugPrintf(s, ...)
     if not self then return end
-    if not self.Config.IsDebugEnabled then return end
-    if not self.Config.IsDebugVerboseEnabled then return end
+    if not elixir.Config.IsDebugEnabled then return end
+    if not elixir.Config.IsDebugVerboseEnabled then return end
     print("\at[Elixir] "..s:format(...).."\ax")
 end
 
