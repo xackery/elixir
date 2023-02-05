@@ -57,11 +57,21 @@ function SettingsRender()
     if not elixir.Config.IsElixirSettingsUIOpen then return end
     if not elixir.IsInGame then return end
     local isOpen, shouldDraw = ImGui.Begin('\xef\x83\xba Elixir '.. elixir.Version .. " Settings", elixir.Config.IsElixirSettingsUIOpen)
-    ImGui.SetWindowSize(430, 277, ImGuiCond.FirstUseEver)
+    ImGui.SetNextWindowPos(elixir.Config.SettingsWindowX, elixir.Config.SettingsWindowY, ImGuiCond.Once)
+    ImGui.SetWindowSize(elixir.Config.SettingsWindowSizeX, elixir.Config.SettingsWindowSizeY, ImGuiCond.Once)
     if not isOpen then
         elixir.Config.IsElixirSettingsUIOpen = false
         ImGui.End()
         return
+    end
+
+    if not shouldDraw then return end
+
+    local x, y = ImGui.GetWindowSize()
+    if x ~= elixir.Config.SettingsWindowSizeX or y ~= elixir.Config.SettingsWindowSizeY then
+        elixir.Config.SettingsWindowSizeX = x
+        elixir.Config.SettingsWindowSizeY = y
+        ConfigSave(elixir.Config)
     end
 
     local isChanged = false
@@ -89,6 +99,7 @@ function SettingsRender()
     end
     ImGui.End()
     if isChanged then
+        elixir.Config.SettingsWindowX, elixir.Config.SettingsWindowY = ImGui.GetWindowPos()
         ConfigSave(elixir.Config)
     end
 end
@@ -121,13 +132,24 @@ function OverlayRender(isOpen)
         ImGuiWindowFlags.NoSavedSettings, ImGuiWindowFlags.NoFocusOnAppearing, ImGuiWindowFlags.NoNav)
 
     ImGui.SetNextWindowBgAlpha(0.7)
-    
+
     local isDraw
     isOpen, isDraw = ImGui.Begin("Elixir overlay", true, window_flags)
-    
+
+
+    ImGui.SetNextWindowPos(elixir.Config.OverlayWindowX, elixir.Config.OverlayWindowY, ImGuiCond.Once)
+
     if isDraw then
-        ImGui.SetCursorPos(1,4)
+        local x, y = ImGui.GetWindowPos()
+        if x ~= elixir.Config.OverlayWindowX or y ~= elixir.Config.OverlayWindowY then
+            elixir.Config.OverlayWindowX = x
+            elixir.Config.OverlayWindowY = y
+            print("saving overlay")
+            ConfigSave(elixir.Config)
+        end
         
+        ImGui.SetCursorPos(1,4)
+
         if elixir.Config.IsElixirAI then
             if elixir.Config.IsElixirDisabledOnFocus and elixir.IsEQInForeground then
                 ImGui.DrawTextureAnimation(classIconDisabled, ICON_WIDTH, ICON_HEIGHT)
@@ -144,7 +166,7 @@ function OverlayRender(isOpen)
             if not elixir.Config.IsElixirSettingsUIOpen then elixir.Config.IsElixirSettingsUIOpen = true end
         end
 
-        
+
         ImGui.SetCursorPos(14, 25)
         if elixir.Config.IsElixirAI then
             if elixir.Config.IsElixirDisabledOnFocus and elixir.IsEQInForeground then
@@ -161,7 +183,7 @@ function OverlayRender(isOpen)
             ImGui.Text(elixirElement.Icon) -- elixir
             ImGui.PopStyleColor(1)
         end
-       
+
         local windowHeight = 46
         local lastX, lastY = ImGui.GetCursorPos()
         if elixir.Config.IsHealAI then

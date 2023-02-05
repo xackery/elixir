@@ -10,6 +10,13 @@ local mq = require('mq')
 ---@field public IsElixirSettingsUIOpen boolean # Is the Elixir UI open
 ---@field public IsDebugEnabled boolean # Is debugging info enabled
 ---@field public IsDebugVerboseEnabled boolean # Is echoing out verbose debugging enabled
+---UI
+---@field public SettingsWindowX number # position of settings window X position
+---@field public SettingsWindowY number # position of settings window Y position
+---@field public SettingsWindowSizeX number # size of settings window width
+---@field public SettingsWindowSizeY number # size of settings window height
+---@field public OverlayWindowX number # position of overlay window Y position
+---@field public OverlayWindowY number # position of overlay window Y position
 ---Heal AI
 ---@field public IsHealAI boolean # Is Heal AI enabled
 ---@field public IsHealSubtleCasting boolean # Is Heal AI supposed to cast when high aggro
@@ -128,6 +135,17 @@ local mq = require('mq')
 ---@return Config
 local function configSanitize(cfg)
     local isNotSanitized = false
+
+    if cfg.SettingsWindowSizeX == nil or cfg.SettingsWindowSizeX < 430 then
+        printf("SettingsWindow size x too small, setting to 430")
+        cfg.SettingsWindowSizeX = 430
+    end
+
+    if cfg.SettingsWindowSizeY == nil or cfg.SettingsWindowSizeY < 277 then
+        printf("SettingsWindow size y too small, setting to 277")
+        cfg.SettingsWindowSizeY = 277
+    end
+
     if cfg.HealPctNormal > 99 then
         print(string.format("HealPctNormal from config was too high at %d, reducing to 99", cfg.HealPctNormal))
         cfg.HealPctNormal = 99
@@ -172,8 +190,7 @@ local function configSanitize(cfg)
         isNotSanitized = true
     end
     if isNotSanitized then
-        local path = string.format("elixir_%s_%s.lua", mq.TLO.EverQuest.Server(), mq.TLO.Me.Name())
-        mq.pickle(path, cfg)
+        ConfigSave(cfg)
     end
     return cfg
 end
@@ -216,14 +233,14 @@ end
 
 ---@return Config
 function ConfigDefault()
-    return {
+    ---@type Config
+    local cfg = {
         IsElixirAI = true,
         IsEQInForeground = true,
         IsInGame = false,
         IsElixirOverlayUI = true,
         IsElixirDisabledOnFocus = false,
         IsElixirSettingsUIOpen = true,
-        IsHealAI = true,
         HealPctNormal = 50,
         HealPctEmergency = 30,
         IsHealSubtleCasting = false,
@@ -245,20 +262,12 @@ function ConfigDefault()
         IsHealRaid = true,
         IsHealPets = true,
         IsHealXTarget = true,
-        IsCureAI = false,
         --CureCheckRateSeconds = 6,
-        IsHotAI = true,
         HotNormalSound = 'hot',
         HotPctNormal = 70,
-        IsStunAI = false,
         IsDebugEnabled = true,
-        IsMeditateAI = true,
-        IsArcheryAI = false,
         IsArcherySubtle = false,
-        IsAttackAI = false,
         IsAttackSubtle = false,
-        IsMezAI = false,
-        IsMoveAI = false,
         IsMoveToMeleeInCombat = true,
         IsMoveToArcheryInCombat = false,
         IsMoveToStrategyPointInCombat = false,
@@ -270,8 +279,6 @@ function ConfigDefault()
         MoveToCampX = 0,
         MoveToCampY = 0,
         MoveToCampZ = 0,
-        IsCharmAI = false,
-        IsTargetAI = false,
         IsTargetPetAssist = true,
         TargetAssistMaxRange = 100,
         IsBuffAI = true,
@@ -281,7 +288,6 @@ function ConfigDefault()
         DotPctNormal = 95,
         IsDotSubtleCasting = true,
         DotPctMinMana = 50,
-        IsNukeAI = false,
         NukePctNormal = 95,
         NukePctMinMana = 50,
         IsNukeSubtleCasting = true,
@@ -307,5 +313,48 @@ function ConfigDefault()
         IsGem11Ignored = false,
         IsGem12Ignored = false,
         IsGem13Ignored = false,
+        SettingsWindowX = 60,
+        SettingsWindowY = 60,
+        SettingsWindowSizeX = 430,
+        SettingsWindowSizeY = 441,
+        OverlayWindowX = 500,
+        OverlayWindowY = 500,
     }
+    local class = mq.TLO.Me.Class.ShortName()
+    if class == "CLR" or
+        class == "DRU" or
+        class == "SHM" or
+        class == "PAL" then
+        cfg.IsHealAI = true
+        cfg.IsCureAI = true
+        cfg.IsHotAI = true
+        cfg.NukePctMinMana = 80
+    end
+    if class == "ENC" or
+        class == "BRD" then
+        cfg.IsMezAI = true
+        cfg.IsCharmAI = true
+    end
+    if class == "ENC" then cfg.IsStunAI = true end
+    if class == "RNG" then cfg.IsArcheryAI = true end
+    if class == "ROG" or
+        class == "WAR" or
+        class == "MNK" then
+            cfg.IsAttackAI = true
+            cfg.IsMoveAI = true
+    end
+    if class == "ENC" or
+        class == "NEC" or
+        class == "DRU" or
+        class == "SHD" or
+        class == "BRD" then
+            cfg.IsDotAI = true
+        end
+    cfg.IsTargetAI = true
+    cfg.IsMeditateAI = true
+    cfg.IsBuffAI = true
+    cfg.IsDebuffAI = true
+    cfg.IsNukeAI = true
+
+    return cfg
 end
