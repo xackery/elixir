@@ -218,6 +218,10 @@ function elixir:Reset()
         elixir.Config.HealFocusID = 0
         elixir.HealAI.HealFocusName = ""
     end
+    if not elixir.LastSpellTargetID then
+        elixir.LastSpellTargetID = 0
+    end
+
 
     if mq.TLO.Me.Casting.ID() and
     elixir.LastSpellTargetID > 0 and
